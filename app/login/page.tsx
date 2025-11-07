@@ -13,10 +13,7 @@ export default function LoginPage() {
     e.preventDefault();
     if (!id || !pw) return alert("아이디와 비밀번호를 입력하세요.");
 
-    // ✅ 로그인 상태 저장 (sessionStorage)
     sessionStorage.setItem("user_name", id);
-
-    // ✅ Context 즉시 업데이트 → 헤더 반영
     setUser({ user_name: id });
 
     alert("로그인 성공!");
@@ -24,19 +21,19 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="w-screen h-screen flex justify-center items-center bg-gradient-to-br from-cyan-400 to-blue-600">
+    <div className="min-h-screen flex justify-center items-center bg-gray-100 px-4">
       <form
         onSubmit={handleLogin}
-        className="w-80 p-8 rounded-2xl bg-white/20 backdrop-blur-xl border border-white/30 shadow-lg flex flex-col gap-4"
+        className="w-full max-w-sm bg-white rounded-xl shadow-lg p-8 flex flex-col gap-5"
       >
-        <h2 className="text-white text-center text-2xl font-semibold">로그인</h2>
+        <h2 className="text-2xl font-bold text-center text-gray-900">로그인</h2>
 
         <input
           type="text"
           placeholder="아이디"
           value={id}
           onChange={(e) => setId(e.target.value)}
-          className="p-3 rounded-lg bg-white/40 backdrop-blur-sm outline-none text-black placeholder-gray-600"
+          className="p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
         />
 
         <input
@@ -44,12 +41,12 @@ export default function LoginPage() {
           placeholder="비밀번호"
           value={pw}
           onChange={(e) => setPw(e.target.value)}
-          className="p-3 rounded-lg bg-white/40 backdrop-blur-sm outline-none text-black placeholder-gray-600"
+          className="p-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
         />
 
         <button
           type="submit"
-          className="p-3 bg-white/70 rounded-lg font-bold hover:bg-white transition text-black"
+          className="p-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-500 transition"
         >
           로그인
         </button>
