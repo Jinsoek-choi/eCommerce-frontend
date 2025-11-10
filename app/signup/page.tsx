@@ -9,7 +9,6 @@ export default function Signup() {
   const [pw, setPw] = useState<string>("");
   const [pwCheck, setPwCheck] = useState<string>("");
 
-  
   const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -18,11 +17,6 @@ export default function Signup() {
       return;
     }
 
-    console.log("▶ 회원가입 요청");
-    console.log("이메일:", email);
-    console.log("비밀번호:", pw);
-
-    // ✅ 백엔드(Spring Boot) API 연동 부분
     try {
       const response = await fetch("http://localhost:8080/api/member/signup", {
         method: "POST",
@@ -31,69 +25,68 @@ export default function Signup() {
       });
 
       const result = await response.text();
-      alert(result); // 백엔드에서 "회원가입 성공" 또는 에러 메시지 출력
+      alert(result);
 
       if (result.includes("성공")) {
-        router.push("/login"); // 회원가입 성공 시 로그인 페이지로 이동
+        router.push("/login");
       }
     } catch (error) {
-      console.error("회원가입 중 오류 발생:", error);
+      console.error("회원가입 중 오류:", error);
       alert("서버 연결 오류! 백엔드 실행 중인지 확인하세요.");
     }
-  }; // ✅ 여기까지만 닫음. 그 아래는 return!
+  };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md">
-        <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
+    <div className="min-h-screen flex justify-center items-center bg-gray-100 px-4">
+      <form
+        onSubmit={handleSignup}
+        className="w-full max-w-sm bg-white rounded-xl shadow-lg p-8 space-y-5"
+      >
+        <h2 className="text-2xl font-bold text-center text-gray-900">회원가입</h2>
+
+        <div>
+          <label className="block text-gray-600 mb-1">이메일</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="example@email.com"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-gray-600 mb-1">비밀번호</label>
+          <input
+            type="password"
+            value={pw}
+            onChange={(e) => setPw(e.target.value)}
+            placeholder="비밀번호 입력"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-gray-600 mb-1">비밀번호 확인</label>
+          <input
+            type="password"
+            value={pwCheck}
+            onChange={(e) => setPwCheck(e.target.value)}
+            placeholder="비밀번호 재입력"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+            required
+          />
+        </div>
+
+        <button
+          type="submit"
+          className="w-full p-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-500 transition"
+        >
           회원가입
-        </h2>
-
-        <form className="space-y-5" onSubmit={handleSignup}>
-          <div>
-            <label className="block text-gray-600 mb-1">이메일</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="example@email.com"
-              className="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 outline-none"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-gray-600 mb-1">비밀번호</label>
-            <input
-              type="password"
-              value={pw}
-              onChange={(e) => setPw(e.target.value)}
-              placeholder="비밀번호 입력"
-              className="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 outline-none"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-gray-600 mb-1">비밀번호 확인</label>
-            <input
-              type="password"
-              value={pwCheck}
-              onChange={(e) => setPwCheck(e.target.value)}
-              placeholder="비밀번호 재입력"
-              className="w-full px-4 py-2 border rounded-lg focus:ring focus:ring-blue-200 outline-none"
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 duration-150"
-          >
-            회원가입
-          </button>
-        </form>
-      </div>
+        </button>
+      </form>
     </div>
   );
 }
