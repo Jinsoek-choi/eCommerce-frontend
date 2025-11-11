@@ -1,8 +1,40 @@
 "use client";
 import Link from "next/link";
-import { products } from "./lib/products";
+import { useEffect, useState } from "react";
+
+interface Product {
+  productId: number;
+  productName: string;
+  consumerPrice: number;
+  sellPrice: number;
+  thumbnailUrl: string;
+}
 
 export default function Home() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("http://localhost:8080/api/products")
+      .then((res) => res.json())
+      .then((data) => {
+        setProducts(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("상품 데이터를 불러오지 못했습니다:", err);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-gray-500">
+        상품 불러오는 중...
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 px-4 py-10">
       <div className="max-w-4xl mx-auto">
@@ -11,16 +43,26 @@ export default function Home() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
           {products.map((p) => (
             <Link
-              key={p.id}
-              href={`/product/${p.id}`}
+              key={p.productId}
+              href={`/product/${p.productId}`}
               className="bg-white rounded-xl shadow hover:shadow-lg transition p-5 flex flex-col items-center"
             >
+              <img
+                src={`/images/${p.thumbnailUrl}`}
+                alt={p.productName}
+                className="w-32 h-32 object-cover rounded-md mb-3"
+              />
+
               <div className="text-lg font-semibold text-gray-800 text-center">
-                {p.name}
+                {p.productName}
               </div>
 
-              <div className="text-gray-600 text-sm mt-2">
-                {p.price.toLocaleString()}원
+              <div className="text-gray-500 text-sm line-through mt-1">
+                {p.consumerPrice.toLocaleString()}원
+              </div>
+
+              <div className="text-gray-800 font-bold mt-1">
+                {p.sellPrice.toLocaleString()}원
               </div>
             </Link>
           ))}
