@@ -9,7 +9,7 @@ export default function ProductDetail() {
 
   if (!product)
     return (
-      <p className="text-center mt-20 text-xl text-gray-600 font-medium">
+      <p className="text-center mt-50 text-xl text-gray-400 font-medium">
         상품을 찾을 수 없습니다.
       </p>
     );
