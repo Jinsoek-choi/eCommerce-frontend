@@ -31,11 +31,6 @@ export default function Footer() {
                 장바구니
               </Link>
             </li>
-            <li>
-              <Link href="/search" className="hover:text-white transition">
-                검색
-              </Link>
-            </li>
           </ul>
         </div>
 

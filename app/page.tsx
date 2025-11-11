@@ -10,9 +10,16 @@ interface Product {
   thumbnailUrl: string;
 }
 
+const banners = [
+  "/images/banner1.jpg",
+  "/images/banner2.jpg",
+  "/images/banner3.jpg",
+];
+
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentBanner, setCurrentBanner] = useState(0);
 
   useEffect(() => {
     fetch("http://localhost:8080/api/products")
@@ -27,6 +34,12 @@ export default function Home() {
       });
   }, []);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentBanner((prev) => (prev + 1) % banners.length);
+    }, 3000)
+  }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-500">
@@ -37,13 +50,32 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-100 px-4">
-      {/* 배너 */}
-      <div className="w-full h-full overflow-hidden">
-        <img
-          src="images/banner.png"
-          alt="banner"
-          className="w-full h-full object-cover"
-        />
+      {/* 배너 슬라이더 */}
+      <div className="w-full relative">
+        <div className="w-full pt-50 relative overflow-hidden">
+          {banners.map((banner, index) => (
+            <img
+              key={index}
+              src={banner}
+              alt={`배너 ${index + 1}`}
+              className={`absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-700 ${
+                index === currentBanner ? "opacity-100 z-10" : "opacity-0 z-0"
+              }`}
+            />
+          ))}
+        </div>
+
+        {/* 선택적: 아래 점 표시 */}
+        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-2">
+          {banners.map((_, index) => (
+            <span
+              key={index}
+              className={`w-2 h-2 rounded-full ${
+                index === currentBanner ? "bg-blue-600" : "bg-white/50"
+              }`}
+            />
+          ))}
+        </div>
       </div>
 
       {/* 상품 목록 */}
@@ -51,7 +83,7 @@ export default function Home() {
         <h1 className="text-3xl font-bold text-gray-900 mb-8">상품 목록</h1>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-          {products.map((p) => (
+          {/* {products.map((p) => (
             <Link
               key={p.productId}
               href={`/product/${p.productId}`}
@@ -75,9 +107,9 @@ export default function Home() {
                 {p.sellPrice.toLocaleString()}원
               </div>
             </Link>
-          ))}
+          ))} */}
         </div>
       </div>
-    </div>
+    </div >
   );
 }
