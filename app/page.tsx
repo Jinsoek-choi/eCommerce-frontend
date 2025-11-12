@@ -40,7 +40,7 @@ export default function Home() {
       {/* 배너 */}
       <div className="w-full h-full overflow-hidden">
         <img
-          src="images/banner.png"
+          src="/images/banner.png"
           alt="banner"
           className="w-full h-full object-cover"
         />
