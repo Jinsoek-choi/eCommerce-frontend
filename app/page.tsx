@@ -7,7 +7,7 @@ interface Product {
   productName: string;
   consumerPrice: number;
   sellPrice: number;
-  thumbnailUrl: string;
+  mainImg: string;
 }
 
 const banners = [
@@ -38,6 +38,8 @@ export default function Home() {
       });
   }, []);
 
+  console.log("렌더링 시 products:", products);
+
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentBanner((prev) => (prev + 1) % banners.length);
@@ -52,6 +54,8 @@ export default function Home() {
       </div>
     );
   }
+
+  console.log("✅ p.mainImg 값 확인:", products.map(p => p.mainImg));
 
   return (
     <div className="min-h-screen justify-self-center">
@@ -77,7 +81,7 @@ export default function Home() {
               key={index}
               onClick={() => handleDotClick(index)} // <--- 이 함수를 호출합니다!
               className={`
-              w-2 h-2 rounded-full transition-colors duration-300 ease-in-out hover: cursor-pointer
+              w-2 h-2 rounded-full transition-colors duration-300 ease-in-out
               ${index === currentBanner
                   ? "bg-white shadow-md"
                   : "bg-white/50 hover:bg-white/80"
@@ -100,7 +104,7 @@ export default function Home() {
               className="bg-white rounded-xl shadow hover:shadow-lg transition p-4 flex flex-col items-center cursor-pointer"
             >
               <img
-                src={`/images/${p.thumbnailUrl}`}
+                src={p.mainImg || "/images/default_main.png"}
                 alt={p.productName}
                 className="w-full h-40 object-contain mb-3"
               />
