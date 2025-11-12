@@ -5,14 +5,15 @@ import { useRouter } from "next/navigation";
 export default function Signup() {
   const router = useRouter();
 
-  const [email, setEmail] = useState<string>("");
-  const [pw, setPw] = useState<string>("");
-  const [pwCheck, setPwCheck] = useState<string>("");
-  const [name, setName] = useState<string>("");
-  const [phone, setPhone] = useState<string>("");
-  const [address, setAddress] = useState<string>("");
+  const [email, setEmail] = useState("");
+  const [pw, setPw] = useState("");
+  const [pwCheck, setPwCheck] = useState("");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");          // 기본주소
+  const [addressDetail, setAddressDetail] = useState(""); // 상세주소
 
-  // 스크립트 동적 로드 (window 존재 확인 포함)
+  // 카카오 주소 검색 스크립트 로드
   useEffect(() => {
     if (typeof window !== "undefined") {
       const script = document.createElement("script");
@@ -23,8 +24,7 @@ export default function Signup() {
   }, []);
 
   const handleSearchAddress = () => {
-    // 스크립트가 아직 로드되지 않은 경우 대비
-    if (!(window as any).daum || !(window as any).daum.Postcode) {
+    if (!(window as any).daum?.Postcode) {
       alert("주소 검색 기능을 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
       return;
     }
@@ -36,6 +36,7 @@ export default function Signup() {
     }).open();
   };
 
+  // 회원가입 요청
   const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -53,7 +54,8 @@ export default function Signup() {
           password: pw,
           name,
           phone,
-          address,
+          address,              // 기본주소
+          addressDetail,        // 상세주소 (분리해서 전송)
         }),
       });
 
@@ -77,6 +79,7 @@ export default function Signup() {
       >
         <h2 className="text-2xl font-bold text-center text-gray-900">회원가입</h2>
 
+        {/* 이름, 전화번호, 이메일, 비밀번호 입력 */}
         <div>
           <label className="block text-gray-600 mb-1">이름</label>
           <input
@@ -108,7 +111,7 @@ export default function Signup() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="example@email.com"
-            className="text-black w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
             required
           />
         </div>
@@ -120,7 +123,7 @@ export default function Signup() {
             value={pw}
             onChange={(e) => setPw(e.target.value)}
             placeholder="비밀번호 입력"
-            className="text-black w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
             required
           />
         </div>
@@ -132,14 +135,15 @@ export default function Signup() {
             value={pwCheck}
             onChange={(e) => setPwCheck(e.target.value)}
             placeholder="비밀번호 재입력"
-            className="text-black w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
             required
           />
         </div>
 
+        {/* 주소 + 상세주소 입력 */}
         <div>
           <label className="block text-gray-600 mb-1">주소</label>
-          <div className="flex gap-2">
+          <div className="flex gap-2 mb-2">
             <input
               type="text"
               value={address}
@@ -155,6 +159,15 @@ export default function Signup() {
               검색
             </button>
           </div>
+
+          {/* 상세주소 입력 */}
+          <input
+            type="text"
+            value={addressDetail}
+            onChange={(e) => setAddressDetail(e.target.value)}
+            placeholder="상세주소 입력 (동/호수 등)"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+          />
         </div>
 
         <button
