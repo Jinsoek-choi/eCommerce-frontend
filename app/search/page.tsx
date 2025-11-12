@@ -61,9 +61,6 @@ export default function SearchPage() {
                   dangerouslySetInnerHTML={{ __html: item.title }}
                 />
                 <p className="text-blue-600 font-bold">{item.lprice.toLocaleString()}원</p>
-                <span className="text-xs text-gray-500 underline mt-2 hover:text-blue-600">
-                  상품 보기 →
-                </span>
               </a>
             ))}
           </div>
