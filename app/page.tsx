@@ -71,7 +71,7 @@ export default function Page() {
 
   if (showIntro) {
     return (
-      <div className="w-screen h-screen flex flex-col items-center justify-center bg-white">
+      <div className="w-screen h-screen flex flex-col items-center justify-center">
         {introLines.map((line, idx) => (
           <h1
             key={idx}
@@ -101,17 +101,31 @@ export default function Page() {
   // Home 화면
   return (
     <div className="min-h-screen flex flex-col items-center bg-gray-100">
-      <div className="w-full max-w-4xl relative overflow-hidden h-80 md:h-[400px]">
+      {/* 배너 슬라이더 */}
+      <div className="w-screen relative overflow-hidden h-[50vh]">
         {banners.map((banner, index) => (
           <img
             key={index}
             src={banner}
             alt={`배너 ${index + 1}`}
-            className={`absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-700 ${
-              index === currentBanner ? "opacity-100 z-10" : "opacity-0 z-0"
-            }`}
+            className={`absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-700 ${index === currentBanner ? "opacity-100 z-10" : "opacity-0 z-0"
+              }`}
           />
         ))}
+
+        {/* 슬라이더 인디케이터 */}
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-3 z-20">
+          {banners.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentBanner(index)}
+              className={`w-2 h-2 rounded-full transition-colors duration-300 ease-in-out hover:cursor-pointer ${index === currentBanner
+                  ? "bg-white shadow-md"
+                  : "bg-white/50 hover:bg-white/80"
+                }`}
+            />
+          ))}
+        </div>
       </div>
 
       <div className="w-full max-w-4xl mt-8 px-4">
