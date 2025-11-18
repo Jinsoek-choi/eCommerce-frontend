@@ -20,9 +20,11 @@ export default function ProductDetailClient({ product }: { product: any }) {
   const colors: string[] = product.colors
     ? product.colors.map((color: { url: string }) => color.url)
     : [];
-  const thumbnails: string[] = product.images && product.images.length > 0
-    ? product.images.map((img: any) => img.url)
+  const thumbnails: string[] = 
+  product.subImages && product.subImages.length > 0
+    ? product.subImages
     : [product.mainImg];
+
 
   // 좋아요 상태 초기화
   useEffect(() => {
@@ -68,9 +70,9 @@ export default function ProductDetailClient({ product }: { product: any }) {
       router.push("/cart");
     }
   };
-  // useEffect(() => {
-  //   console.log("🔥 전체 product 데이터:", product);
-  // }, [product]);
+  useEffect(() => {
+    console.log("🔥 전체 product 데이터:", product);
+  }, [product]);
 
   return (
     <div className="max-w-6xl h-full my-auto bg-white p-8 rounded-xl shadow">
