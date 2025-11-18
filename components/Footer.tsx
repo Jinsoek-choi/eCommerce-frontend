@@ -8,8 +8,14 @@ export default function Footer() {
     <footer className="bg-gray-900 text-white w-full">
       <div className="max-w-6xl mx-auto px-6 py-10 grid md:grid-cols-3 gap-8">
         <div>
-          <h3 className="text-lg font-semibold mb-2">E-Commerce</h3>
-          <p className="text-gray-400 text-sm">여러분의 쇼핑과 즐거운 경험을 한 곳에서 제공합니다.</p>
+          <h3 className="text-lg font-semibold mb-2">
+            <img
+              src="/images/signature_w.png"
+              alt="Logo"
+              className="h-8 w-auto object-contain"
+            />
+          </h3>
+          <p className="text-gray-400 text-sm">Your Daily Journey</p>
         </div>
 
         <div>
@@ -24,10 +30,16 @@ export default function Footer() {
         <div>
           <h3 className="text-lg font-semibold mb-2">Contact & SNS</h3>
           <ul className="text-gray-400 text-sm space-y-1">
-            <li className="flex items-center gap-1"><Mail size={14} /> support@ecommerce.com</li>
-            <li className="flex items-center gap-1"><Phone size={14} /> 010-1234-5678</li>
-            <li className="flex items-center gap-1"><Facebook size={14} /> <Link href="#">Facebook</Link></li>
-            <li className="flex items-center gap-1"><Instagram size={14} /> <Link href="#">Instagram</Link></li>
+            <li className="flex items-center gap-1">
+              <Mail size={14} /> ydj@ecommerce.com</li>
+            <li className="flex items-center gap-1">
+              <Phone size={14} /> 010-1234-5678</li>
+            <li className="flex items-center gap-1">
+              <Facebook size={14} /> <Link href="#">Facebook</Link>
+            </li>
+            <li className="flex items-center gap-1">
+              <Instagram size={14} /> <Link href="#">Instagram</Link>
+            </li>
           </ul>
         </div>
       </div>

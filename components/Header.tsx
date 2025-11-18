@@ -25,7 +25,6 @@ export default function Header() {
     setMenuOpen(false);
   };
 
-  // 메뉴 바깥 클릭 시 닫힘
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
