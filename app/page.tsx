@@ -84,7 +84,7 @@ export default function Page() {
           onClick={goHome}
           className="mt-10 px-8 py-4 bg-blue-600 text-white rounded-full text-xl font-semibold"
         >
-          Start Now
+          쇼핑 바로가기
         </button>
       </div>
     );
@@ -92,8 +92,13 @@ export default function Page() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-gray-500">
+      <div className="min-h-screen flex flex-col items-center justify-center text-gray-500">
         상품 불러오는 중...
+        <img
+          src="/images/signature_w.png"
+          alt="Loading"
+          className="inline-block w-8 h-8 md:w-20 md:h-20 mx-[2px] -mb-2 animate-spin-slow"
+        />
       </div>
     );
   }
@@ -120,8 +125,8 @@ export default function Page() {
               key={index}
               onClick={() => setCurrentBanner(index)}
               className={`w-2 h-2 rounded-full transition-colors duration-300 ease-in-out hover:cursor-pointer ${index === currentBanner
-                  ? "bg-white shadow-md"
-                  : "bg-white/50 hover:bg-white/80"
+                ? "bg-white shadow-md"
+                : "bg-white/50 hover:bg-white/80"
                 }`}
             />
           ))}
