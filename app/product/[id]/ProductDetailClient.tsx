@@ -1,112 +1,156 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Heart, Plus, Minus } from "lucide-react";
+import { Heart, Plus, Minus, X } from "lucide-react";
 import { useUser } from "../../../context/UserContext";
 import { useCart } from "../../../context/CartContext";
 
-export default function ProductDetailClient({ product }: { product: any }) {
+interface Option {
+  optionId: number;
+  value: string;
+}
+
+interface SelectedOption extends Option {
+  count: number;
+}
+
+interface Product {
+  productId: number;
+  productName: string;
+  description?: string;
+  mainImg?: string;
+  subImages?: string[];
+  consumerPrice?: number;
+  sellPrice: number;
+  stock: number;
+  isOption?: number; // 1이면 옵션 있음
+  options?: { optionId: number; optionValue: string }[];
+}
+
+export default function ProductDetailClient({ product }: { product: Product }) {
   const router = useRouter();
   const { user } = useUser();
   const { addToCart } = useCart();
 
-  const [count, setCount] = useState(1);
-  const [selectedOption, setSelectedOption] = useState("");
   const [liked, setLiked] = useState(false);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
-  const [mainImage, setMainImage] = useState(product.mainImg || "/images/default_main.png");
+  const [mainImage, setMainImage] = useState<string>(product.mainImg || "/images/default_main.png");
+
+  const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
+
   const detailRef = useRef<HTMLDivElement>(null);
 
-  const colors: string[] = product.colors
-    ? product.colors.map((color: { url: string }) => color.url)
-    : [];
-  const thumbnails: string[] = 
-  product.subImages && product.subImages.length > 0
+  const thumbnails: string[] = product.subImages?.length
     ? product.subImages
-    : [product.mainImg];
+    : product.mainImg
+    ? [product.mainImg]
+    : [];
 
-
-  // 좋아요 상태 초기화
+  // 좋아요 초기화
   useEffect(() => {
-    const likedItems = JSON.parse(localStorage.getItem("likedProducts") || "[]");
+    const likedItems: number[] = JSON.parse(localStorage.getItem("likedProducts") || "[]");
     setLiked(likedItems.includes(product.productId));
   }, [product.productId]);
 
   const handleLike = () => {
-    const likedItems = JSON.parse(localStorage.getItem("likedProducts") || "[]");
-    let updatedLikes;
+    const likedItems: number[] = JSON.parse(localStorage.getItem("likedProducts") || "[]");
+    let updated: number[];
+
     if (likedItems.includes(product.productId)) {
-      updatedLikes = likedItems.filter((id: number) => id !== product.productId);
+      updated = likedItems.filter((id) => id !== product.productId);
       setLiked(false);
     } else {
-      updatedLikes = [...likedItems, product.productId];
+      updated = [...likedItems, product.productId];
       setLiked(true);
     }
-    localStorage.setItem("likedProducts", JSON.stringify(updatedLikes));
+
+    localStorage.setItem("likedProducts", JSON.stringify(updated));
   };
+
+  // ------------------- 커스텀 드롭다운 -------------------
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSelectOption = (opt: Option) => {
+    const already = selectedOptions.find((o) => o.optionId === opt.optionId);
+    if (already) {
+      alert("이미 선택된 옵션입니다.");
+      return;
+    }
+    setSelectedOptions((prev) => [...prev, { ...opt, count: 1 }]);
+    setDropdownOpen(false);
+  };
+  // ------------------------------------------------------
 
   const handleAddToCart = () => {
     if (!user) {
-      if (window.confirm("장바구니를 사용하려면 로그인해야 합니다.\n로그인 페이지로 이동하시겠습니까?")) {
+      if (window.confirm("로그인이 필요합니다. 로그인하시겠습니까?")) {
         router.push("/login");
       }
       return;
     }
-    if (product.isOption === 1 && !selectedOption) {
+
+    if (product.isOption === 1 && selectedOptions.length === 0) {
       alert("옵션을 선택해주세요!");
       return;
     }
-    addToCart({
-      productId: product.productId,
-      productName: product.productName,
-      price: product.sellPrice,
-      thumbnailUrl: mainImage,
-      option: product.isoption === 1 ? selectedOption : null,
-      color: selectedColor,
-      count,
-      id: 0,
+
+    selectedOptions.forEach((opt) => {
+      addToCart({
+        productId: product.productId,
+        productName: product.productName,
+        price: product.sellPrice,
+        thumbnailUrl: mainImage,
+        option: opt.value,
+        color: selectedColor,
+        count: opt.count,
+        id: 0,
+      });
     });
-    if (window.confirm("🛒 장바구니에 담겼습니다!\n\n[확인] → 장바구니로 이동\n[취소] → 계속 쇼핑하기")) {
+
+    if (window.confirm("장바구니에 담았습니다.\n장바구니로 이동할까요?")) {
       router.push("/cart");
     }
   };
-  useEffect(() => {
-    console.log("🔥 전체 product 데이터:", product);
-  }, [product]);
 
   return (
     <div className="max-w-6xl h-full my-auto bg-white p-8 rounded-xl shadow">
       <div className="grid md:grid-cols-2 gap-10 items-start">
 
-        {/* 메인 이미지 + 썸네일 */}
+        {/* 이미지 */}
         <div ref={detailRef} className="flex flex-row gap-6">
-          {/* 썸네일 (왼쪽 세로) */}
-          {thumbnails.length > 0 && (
-            <div className="flex flex-col gap-2 overflow-y-auto max-h-[500px] min-w-[5rem] justify-start">
-              {thumbnails.map((thumb, idx) => (
-                <img
-                  key={idx}
-                  src={thumb}
-                  alt={`썸네일 ${idx}`}
-                  className={`w-20 h-20 object-contain rounded border cursor-pointer ${mainImage === thumb ? "border-blue-600" : "border-gray-300"
-                    }`}
-                  onClick={() => setMainImage(thumb)}
-                />
-              ))}
-            </div>
-          )}
+          <div className="flex flex-col gap-2 overflow-y-auto max-h-[500px] min-w-[5rem]">
+            {thumbnails.map((thumb, idx) => (
+              <img
+                key={idx}
+                src={thumb}
+                alt={`썸네일 ${idx}`}
+                className={`w-20 h-20 object-contain rounded border ${mainImage === thumb ? "border-blue-600" : "border-gray-300"} hover:cursor-pointer`}
+                onClick={() => setMainImage(thumb)}
+              />
+            ))}
+          </div>
 
-          {/* 메인 이미지 */}
           <div className="flex-1 flex justify-center items-start">
             <img
-              src={mainImage || "/images/default_main.png"}
+              src={mainImage}
               alt={product.productName}
               className="rounded-lg object-contain max-h-[500px] w-full"
             />
           </div>
         </div>
 
-        {/* 상세 정보 */}
+        {/* 상품 정보 */}
         <div className="flex flex-col">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">{product.productName}</h1>
           <p className="text-gray-700 mb-6">{product.description || "설명이 없습니다."}</p>
@@ -117,38 +161,107 @@ export default function ProductDetailClient({ product }: { product: any }) {
             <p className="text-gray-600 mt-2 text-sm">재고: {product.stock}개</p>
           </div>
 
-          {product.isOption &&  (
-            <div className="mb-6">
+          {/* ------------------- 커스텀 드롭다운 ------------------- */}
+          {product.isOption && product.options?.length ? (
+            <div className="mb-6 relative" ref={dropdownRef}>
               <label className="block text-gray-700 mb-2 font-medium">옵션 선택</label>
-              <select
-                value={selectedOption}
-                onChange={(e) => setSelectedOption(e.target.value)}
-                className="text-black w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              <button
+                onClick={() => setDropdownOpen((prev) => !prev)}
+                className="w-full border border-gray-300 rounded-lg p-2 text-left cursor-pointer hover:ring-2 hover:ring-blue-400"
               >
-                {product.options?.map((opt : any) => (
-                        <option key={opt.optionId} value={opt.optionValue}>
-                            {opt.optionValue}
-                        </option>
-                    ))}
-                </select>
-            </div>
-          )}
+                {selectedOptions.length === 0 ? "옵션 선택" : selectedOptions.map((o) => o.value).join(", ")}
+              </button>
 
-          <div className="flex justify-center items-center gap-5 mb-6">
-            <button onClick={() => setCount(prev => Math.max(1, prev - 1))} className="p-2 bg-gray-400 rounded-lg hover:bg-gray-500 text-white transition cursor-pointer">
-              <Minus size={16} />
-            </button>
-            <span className="text-lg font-semibold text-gray-800">{count}</span>
-            <button onClick={() => setCount(prev => prev + 1)} className="p-2 bg-gray-400 rounded-lg hover:bg-gray-500 text-white transition cursor-pointer">
-              <Plus size={16} />
-            </button>
+              {dropdownOpen && (
+                <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                  {product.options.map((opt) => (
+                    <li
+                      key={opt.optionId}
+                      onClick={() =>
+                        handleSelectOption({ optionId: opt.optionId, value: opt.optionValue })
+                      }
+                      className={`p-2 hover:bg-blue-100 hover:cursor-pointer ${
+                        selectedOptions.find((o) => o.optionId === opt.optionId) ? "bg-gray-200" : ""
+                      }`}
+                    >
+                      {opt.optionValue}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ) : null}
+          {/* ------------------------------------------------------ */}
+
+          {/* 선택된 옵션 카드 */}
+          <div className="flex flex-col gap-4 mb-6">
+            {selectedOptions.map((item) => (
+              <div key={item.optionId} className="border p-4 rounded-lg shadow-sm flex justify-between items-center">
+                <div>
+                  <p className="font-medium">{item.value}</p>
+                  <div className="flex items-center gap-3 mt-2">
+                    <button
+                      onClick={() =>
+                        setSelectedOptions((prev) =>
+                          prev.map((p) =>
+                            p.optionId === item.optionId ? { ...p, count: Math.max(1, p.count - 1) } : p
+                          )
+                        )
+                      }
+                      className="p-2 bg-gray-200 rounded hover:cursor-pointer"
+                    >
+                      <Minus size={16} />
+                    </button>
+
+                    <span className="font-semibold">{item.count}</span>
+
+                    <button
+                      onClick={() =>
+                        setSelectedOptions((prev) =>
+                          prev.map((p) =>
+                            p.optionId === item.optionId ? { ...p, count: p.count + 1 } : p
+                          )
+                        )
+                      }
+                      className="p-2 bg-gray-200 rounded hover:cursor-pointer"
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </div>
+                </div>
+                <button
+                  onClick={() =>
+                    setSelectedOptions((prev) => prev.filter((p) => p.optionId !== item.optionId))
+                  }
+                  className="text-gray-400 hover:text-black hover:cursor-pointer"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            ))}
           </div>
 
+          {/* 버튼 */}
           <div className="flex items-center gap-4">
-            <button onClick={handleLike} className={`p-2 border rounded-lg transition-all duration-300 hover: cursor-pointer ${liked ? "bg-rose-50 border-rose-300 hover:bg-rose-100" : "bg-white border-gray-300 hover:shadow-md"}`} aria-label="좋아요">
-              <Heart className={`w-7 h-7 transition-all duration-300 ${liked ? "fill-rose-500 stroke-rose-500 drop-shadow-[0_0_8px_rgba(244,63,94,0.5)]" : "stroke-gray-400 hover:stroke-rose-400"}`} />
+            <button
+              onClick={handleLike}
+              className={`p-2 border rounded-lg transition-all ${
+                liked ? "bg-rose-50 border-rose-300" : "bg-white border-gray-300"
+              } hover:cursor-pointer`}
+            >
+              <Heart
+                className={`w-7 h-7 ${
+                  liked ? "fill-rose-500 stroke-rose-500" : "stroke-gray-400"
+                }`}
+              />
             </button>
-            <button onClick={handleAddToCart} className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition hover:cursor-pointer">장바구니 담기</button>
+
+            <button
+              onClick={handleAddToCart}
+              className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 hover:cursor-pointer"
+            >
+              장바구니 담기
+            </button>
           </div>
         </div>
       </div>
