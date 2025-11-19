@@ -5,7 +5,7 @@ import ProductDetailBottom from "@/components/product/ProductDetailBottom";
 
 export default function ProductDetailClient({ product }: any) {
   return (
-    <div className="max-w-6xl mx-auto py-10">
+    <div className="w-full">
       <ProductDetailTop product={product} />
       <ProductDetailBottom product={product} />
     </div>

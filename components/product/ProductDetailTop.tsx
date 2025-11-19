@@ -1,89 +1,271 @@
 "use client";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { Heart, Plus, Minus, X } from "lucide-react";
+import { useUser } from "../../context/UserContext";
+import { useCart } from "../../context/CartContext";
 
-import { useState } from "react";
-import { Plus, Minus } from "lucide-react";
 
-export default function ProductDetailTop({ product }: any) {
-  const [count, setCount] = useState(1);
+interface Option {
+  optionId: number;
+  value: string;
+}
 
-  const mainImg = product.mainImg;
-  const subImages: string[] = product.subImages || [];
-  const allImages = [mainImg, ...subImages];
+interface SelectedOption extends Option {
+  count: number;
+}
 
-  const [currentImg, setCurrentImg] = useState(mainImg);
+interface Product {
+  productId: number;
+  productName: string;
+  description?: string;
+  mainImg?: string;
+  subImages?: string[];
+  consumerPrice?: number;
+  sellPrice: number;
+  stock: number;
+  isOption?: number; // 1이면 옵션 있음
+  options?: { optionId: number; optionValue: string }[];
+}
+
+export default function ProductDetailTop({ product }: { product: Product }) {
+  const router = useRouter();
+  const { user } = useUser();
+  const { addToCart } = useCart();
+
+  const [liked, setLiked] = useState(false);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [mainImage, setMainImage] = useState<string>(product.mainImg || "/images/default_main.png");
+
+  const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
+
+  const detailRef = useRef<HTMLDivElement>(null);
+
+  const thumbnails: string[] = product.subImages?.length
+    ? product.subImages
+    : product.mainImg
+    ? [product.mainImg]
+    : [];
+
+  // 좋아요 초기화
+  useEffect(() => {
+    const likedItems: number[] = JSON.parse(localStorage.getItem("likedProducts") || "[]");
+    setLiked(likedItems.includes(product.productId));
+  }, [product.productId]);
+
+  const handleLike = () => {
+    const likedItems: number[] = JSON.parse(localStorage.getItem("likedProducts") || "[]");
+    let updated: number[];
+
+    if (likedItems.includes(product.productId)) {
+      updated = likedItems.filter((id) => id !== product.productId);
+      setLiked(false);
+    } else {
+      updated = [...likedItems, product.productId];
+      setLiked(true);
+    }
+
+    localStorage.setItem("likedProducts", JSON.stringify(updated));
+  };
+
+  // ------------------- 커스텀 드롭다운 -------------------
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSelectOption = (opt: Option) => {
+    const already = selectedOptions.find((o) => o.optionId === opt.optionId);
+    if (already) {
+      alert("이미 선택된 옵션입니다.");
+      return;
+    }
+    setSelectedOptions((prev) => [...prev, { ...opt, count: 1 }]);
+    setDropdownOpen(false);
+  };
+  // ------------------------------------------------------
+
+  const handleAddToCart = () => {
+    if (!user) {
+      if (window.confirm("로그인이 필요합니다. 로그인하시겠습니까?")) {
+        router.push("/login");
+      }
+      return;
+    }
+
+    if (product.isOption === 1 && selectedOptions.length === 0) {
+      alert("옵션을 선택해주세요!");
+      return;
+    }
+
+    selectedOptions.forEach((opt) => {
+      addToCart({
+        productId: product.productId,
+        productName: product.productName,
+        price: product.sellPrice,
+        thumbnailUrl: mainImage,
+        option: opt.value,
+        color: selectedColor,
+        count: opt.count,
+        id: 0,
+      });
+    });
+
+    if (window.confirm("장바구니에 담았습니다.\n장바구니로 이동할까요?")) {
+      router.push("/cart");
+    }
+  };
 
   return (
-    <div className="bg-white p-8 rounded-xl shadow flex gap-10">
+    <div className="max-w-6xl my-auto bg-white p-8 rounded-xl shadow">
+      <div className="grid md:grid-cols-2 gap-10 items-start">
 
-      {/* --------------------------- */}
-      {/* 이미지 전체 영역     */}
-      {/* --------------------------- */}
-      <div className="flex flex-1 gap-6">
+        {/* 이미지 */}
+        <div ref={detailRef} className="flex flex-row gap-6">
+          <div className="flex flex-col gap-2 overflow-y-auto max-h-[500px] min-w-[5rem]">
+            {thumbnails.map((thumb, idx) => (
+              <img
+                key={idx}
+                src={thumb}
+                alt={`썸네일 ${idx}`}
+                className={`w-20 h-20 object-contain rounded border ${mainImage === thumb ? "border-blue-600" : "border-gray-300"} hover:cursor-pointer`}
+                onClick={() => setMainImage(thumb)}
+              />
+            ))}
+          </div>
 
-        {/* 썸네일 리스트 */}
-        <div className="flex flex-col gap-3">
-          {allImages.map((img, i) => (
+          <div className="flex-1 flex justify-center items-start">
             <img
-              key={i}
-              src={img}
-              className={`w-20 h-20 rounded-lg object-cover cursor-pointer border 
-              ${currentImg === img ? "border-blue-500" : "border-gray-300"}`}
-              onClick={() => setCurrentImg(img)}
+              src={mainImage}
+              alt={product.productName}
+              className="rounded-lg object-contain max-h-[500px] w-full"
             />
-          ))}
+          </div>
         </div>
 
-        {/* 메인 이미지 */}
-        <div className="flex-1 flex justify-center items-center">
-          <img
-            src={currentImg}
-            className="w-[420px] rounded-xl object-contain"
-          />
-        </div>
+        {/* 상품 정보 */}
+        <div className="flex flex-col">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">{product.productName}</h1>
+          <p className="text-gray-700 mb-6">{product.description || "설명이 없습니다."}</p>
 
+          <div className="mb-6">
+            <p className="text-gray-400 text-sm line-through">{product.consumerPrice?.toLocaleString()}원</p>
+            <p className="text-3xl font-bold text-blue-600">{product.sellPrice?.toLocaleString()}원</p>
+            <p className="text-gray-600 mt-2 text-sm">재고: {product.stock}개</p>
+          </div>
+
+          {/* ------------------- 커스텀 드롭다운 ------------------- */}
+          {product.isOption && product.options?.length ? (
+            <div className="mb-6 relative" ref={dropdownRef}>
+              <label className="block text-gray-700 mb-2 font-medium">옵션 선택</label>
+              <button
+                onClick={() => setDropdownOpen((prev) => !prev)}
+                className="w-full border border-gray-300 rounded-lg p-2 text-left cursor-pointer hover:ring-2 hover:ring-blue-400"
+              >
+                {selectedOptions.length === 0 ? "옵션 선택" : selectedOptions.map((o) => o.value).join(", ")}
+              </button>
+
+              {dropdownOpen && (
+                <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                  {product.options.map((opt) => (
+                    <li
+                      key={opt.optionId}
+                      onClick={() =>
+                        handleSelectOption({ optionId: opt.optionId, value: opt.optionValue })
+                      }
+                      className={`p-2 hover:bg-blue-100 hover:cursor-pointer ${
+                        selectedOptions.find((o) => o.optionId === opt.optionId) ? "bg-gray-200" : ""
+                      }`}
+                    >
+                      {opt.optionValue}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ) : null}
+          {/* ------------------------------------------------------ */}
+
+          {/* 선택된 옵션 카드 */}
+          <div className="flex flex-col gap-4 mb-6">
+            {selectedOptions.map((item) => (
+              <div key={item.optionId} className="border p-4 rounded-lg shadow-sm flex justify-between items-center">
+                <div>
+                  <p className="font-medium">{item.value}</p>
+                  <div className="flex items-center gap-3 mt-2">
+                    <button
+                      onClick={() =>
+                        setSelectedOptions((prev) =>
+                          prev.map((p) =>
+                            p.optionId === item.optionId ? { ...p, count: Math.max(1, p.count - 1) } : p
+                          )
+                        )
+                      }
+                      className="p-2 bg-gray-200 rounded hover:cursor-pointer"
+                    >
+                      <Minus size={16} />
+                    </button>
+
+                    <span className="font-semibold">{item.count}</span>
+
+                    <button
+                      onClick={() =>
+                        setSelectedOptions((prev) =>
+                          prev.map((p) =>
+                            p.optionId === item.optionId ? { ...p, count: p.count + 1 } : p
+                          )
+                        )
+                      }
+                      className="p-2 bg-gray-200 rounded hover:cursor-pointer"
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </div>
+                </div>
+                <button
+                  onClick={() =>
+                    setSelectedOptions((prev) => prev.filter((p) => p.optionId !== item.optionId))
+                  }
+                  className="text-gray-400 hover:text-black hover:cursor-pointer"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* 버튼 */}
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleLike}
+              className={`p-2 border rounded-lg transition-all ${
+                liked ? "bg-rose-50 border-rose-300" : "bg-white border-gray-300"
+              } hover:cursor-pointer`}
+            >
+              <Heart
+                className={`w-7 h-7 ${
+                  liked ? "fill-rose-500 stroke-rose-500" : "stroke-gray-400"
+                }`}
+              />
+            </button>
+
+            <button
+              onClick={handleAddToCart}
+              className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 hover:cursor-pointer"
+            >
+              장바구니 담기
+            </button>
+          </div>
+        </div>
       </div>
-
-      {/* --------------------------- */}
-      {/* BUY BOX            */}
-      {/* --------------------------- */}
-      <div className="w-[360px] sticky top-24 h-fit bg-white border rounded-xl p-6 shadow-sm flex flex-col gap-6">
-
-        <h1 className="text-2xl font-bold">{product.productName}</h1>
-
-        <div>
-          <p className="text-gray-400 line-through text-sm">
-            {product.consumerPrice?.toLocaleString()}원
-          </p>
-          <p className="text-3xl font-bold text-blue-600">
-            {product.sellPrice?.toLocaleString()}원
-          </p>
-          <p className="text-gray-600 mt-1 text-sm">재고: {product.stock}개</p>
-        </div>
-
-        {/* 수량 조절 */}
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => setCount(v => Math.max(1, v - 1))}
-            className="p-2 bg-gray-200 rounded"
-          >
-            <Minus />
-          </button>
-          <span className="text-lg font-semibold">{count}</span>
-          <button
-            onClick={() => setCount(v => v + 1)}
-            className="p-2 bg-gray-200 rounded"
-          >
-            <Plus />
-          </button>
-        </div>
-
-        {/* 장바구니 버튼 */}
-        <button className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700">
-          장바구니 담기
-        </button>
-
-      </div>
-
     </div>
   );
 }
