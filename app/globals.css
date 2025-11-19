@@ -31,3 +31,20 @@ body {
     animation: spin 3s linear infinite;
   }
 }
+
+@keyframes spreadFade {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@layer utilities {
+  .animate-spreadFade {
+    animation: spreadFade 0.5s ease forwards;
+  }
+}
