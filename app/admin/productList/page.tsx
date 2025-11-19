@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Product {
   productId: number;
@@ -14,12 +15,16 @@ export default function AdminPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // 페이징 상태
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 5; // 한 페이지에 10개 표시
+
   // 상품 불러오기
   useEffect(() => {
     fetch("http://localhost:8080/api/products")
       .then((res) => res.json())
       .then((data) => setProducts(data))
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoading(false));
   }, []);
 
@@ -35,6 +40,11 @@ export default function AdminPage() {
       </div>
     );
   }
+
+  // 현재 페이지 데이터 계산
+  const totalPages = Math.ceil(products.length / pageSize);
+  const startIdx = (currentPage - 1) * pageSize;
+  const currentProducts = products.slice(startIdx, startIdx + pageSize);
 
   return (
     <div className="min-h-screen p-8 bg-gray-100">
@@ -55,14 +65,18 @@ export default function AdminPage() {
               </tr>
             </thead>
             <tbody>
-              {products.map((p) => (
+              {currentProducts.map((p) => (
                 <tr key={p.productId} className="border-b hover:bg-gray-50">
                   <td className="py-2 px-4">{p.productId}</td>
                   <td className="py-2 px-4">{p.productName}</td>
                   <td className="py-2 px-4">{p.consumerPrice.toLocaleString()}원</td>
                   <td className="py-2 px-4">{p.sellPrice.toLocaleString()}원</td>
                   <td className="py-2 px-4">
-                    <a href={`/admin/productEdit/${p.productId}`} target="_blank" rel="noopener noreferrer">
+                    <a
+                      href={`/admin/productEdit/${p.productId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
                       <img
                         src={p.mainImg}
                         alt={p.productName}
@@ -74,6 +88,38 @@ export default function AdminPage() {
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* 페이징 UI */}
+        <div className="flex justify-center items-center gap-2 mt-6">
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="disabled:opacity-40 hover:bg-gray-100 transition cursor-pointer"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              onClick={() => setCurrentPage(page)}
+              className={`px-3 py-1 border rounded transition cursor-pointer ${currentPage === page
+                  ? "bg-black text-white border-black"
+                  : "hover:bg-gray-100"
+                }`}
+            >
+              {page}
+            </button>
+          ))}
+
+          <button
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="disabled:opacity-40 hover:bg-gray-100 transition cursor-pointer"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
         </div>
       </div>
     </div>
