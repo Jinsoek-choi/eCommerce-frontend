@@ -20,7 +20,7 @@ export default function LoginPage() {
     }
 
     try {
-      const response = await fetch("http://localhost:8080/api/login", {
+      const response = await fetch("http://localhost:8080/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include", // ★ 세션 쿠키 저장

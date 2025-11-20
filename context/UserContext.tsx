@@ -1,5 +1,7 @@
 "use client";
 
+
+import { CartProvider } from "./CartContext";
 import {
   createContext,
   useContext,
