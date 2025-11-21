@@ -12,7 +12,13 @@ export default function ProductDetailBottom({ product }: any) {
   const subImages = product.subImages || [];
 
   const scrollToSection = (ref: any) => {
-    ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const offset = 80; // 헤더와 간격 조절
+    const top = ref.current!.offsetTop - offset;
+
+    window.scrollTo({
+      top,
+      behavior: "smooth",
+    });
   };
 
   // ScrollSpy
@@ -23,7 +29,7 @@ export default function ProductDetailBottom({ product }: any) {
           if (e.isIntersecting) setActiveTab(e.target.id);
         });
       },
-      { rootMargin: "-150px 0px -50% 0px" }
+      { rootMargin: "-70px 0px -60% 0px" }
     );
 
     [infoRef, sizeRef, recommendRef].forEach((ref) => {
@@ -38,30 +44,44 @@ export default function ProductDetailBottom({ product }: any) {
 
       {/* NAV TABS */}
       <div className="sticky top-20 bg-white z-20 border-b">
-        <div className="flex justify-center gap-10 text-lg font-semibold relative">
-          {["info", "size", "recommend"].map((tab) => (
-            <button
-              key={tab}
-              className={`py-4 transition-colors ${activeTab === tab ? "text-blue-600" : "text-gray-500"
-                }`}
-              onClick={() => {
-                if (tab === "info") scrollToSection(infoRef);
-                if (tab === "size") scrollToSection(sizeRef);
-                if (tab === "recommend") scrollToSection(recommendRef);
-              }}
-            >
-              {tab === "info" && "정보"}
-              {tab === "size" && "사이즈"}
-              {tab === "recommend" && "추천"}
+      <div className="flex gap-10 text-lg font-semibold relative">
 
-              <div
-                className={`h-[3px] w-full mt-2 transition-all ${activeTab === tab ? "bg-blue-600" : "bg-transparent"
-                  }`}
-              />
-            </button>
-          ))}
-        </div>
+        {["info", "size", "recommend"].map((tab) => (
+          <button
+            key={tab}
+            className={`
+              group py-4 transition-all duration-200
+              cursor-pointer
+              ${activeTab === tab 
+                ? "text-blue-600" 
+                : "text-gray-500 hover:text-blue-500"}
+            `}
+            onClick={() => {
+              if (tab === "info") scrollToSection(infoRef);
+              if (tab === "size") scrollToSection(sizeRef);
+              if (tab === "recommend") scrollToSection(recommendRef);
+            }}
+          >
+            {/* 텍스트 */}
+            {tab === "info" && "정보"}
+            {tab === "size" && "사이즈"}
+            {tab === "recommend" && "추천"}
+
+            {/* underline */}
+            <div
+              className={`
+                h-[3px] w-full mt-2 origin-left transition-all duration-200
+                ${activeTab === tab
+                  ? "bg-blue-600 scale-x-100"
+                  : "bg-transparent scale-x-0 group-hover:bg-blue-500 group-hover:scale-x-100"}
+              `}
+            />
+          </button>
+        ))}
+
       </div>
+    </div>
+
 
       {/* 1. 정보 섹션 */}
       <section

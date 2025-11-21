@@ -35,6 +35,16 @@ export default function Page() {
   const [selectedMain, setSelectedMain] = useState<string | null>(null);
   const pageSize = 8;
 
+
+  useEffect(() => {
+    const seen = sessionStorage.getItem("introSeen");
+
+    if (seen !== "true") {
+      window.location.href = "/intro";
+    }
+  }, []);
+
+  // 3) 상품 불러오기
   useEffect(() => {
     fetch("http://localhost:8080/api/products")
       .then((res) => res.json())
