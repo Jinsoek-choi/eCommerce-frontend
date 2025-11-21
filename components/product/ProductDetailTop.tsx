@@ -76,7 +76,7 @@ export default function ProductDetailTop({ product }: { product: Product }) {
     localStorage.setItem("likedProducts", JSON.stringify(updated));
   };
 
-  /** 옵션 선택 */
+  /** 커스텀 드롭다운 / 옵션 선택 */
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -143,9 +143,8 @@ export default function ProductDetailTop({ product }: { product: Product }) {
                 key={idx}
                 src={thumb}
                 alt={`썸네일 ${idx}`}
-                className={`w-20 h-20 object-contain rounded border ${
-                  mainImage === thumb ? "border-blue-600" : "border-gray-300"
-                } hover:cursor-pointer`}
+                className={`w-20 h-20 object-contain rounded border ${mainImage === thumb ? "border-gray-800" : "border-gray-300"
+                  } hover:cursor-pointer`}
                 onClick={() => setMainImage(thumb)}
               />
             ))}
@@ -160,24 +159,23 @@ export default function ProductDetailTop({ product }: { product: Product }) {
           </div>
         </div>
 
-        {/* ------------------------------ */}
-        {/*  상품 정보 */}
-        {/* ------------------------------ */}
-        <div className="flex flex-col">
+        {/* 상품 정보 영역 */}
+        <div className="flex flex-col items-center md:items-start text-center md:text-left">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">{product.productName}</h1>
           <p className="text-gray-700 mb-6 max-w-md">{product.description || "설명이 없습니다."}</p>
 
-          <div className="mb-6">
-            <p className="text-gray-400 text-sm line-through">
-              {product.consumerPrice?.toLocaleString()}원
-            </p>
-            <p className="text-3xl font-bold text-blue-600">
-              {product.sellPrice?.toLocaleString()}원
-            </p>
+          <div className="mb-6 text-center md:text-left">
+            <p className="text-gray-400 text-sm line-through">{product.consumerPrice?.toLocaleString()}원</p>
+            {product.consumerPrice && product.sellPrice && product.consumerPrice > product.sellPrice && (
+              <span className="text-red-500 text-3xl font-bold">
+                {Math.round(((product.consumerPrice - product.sellPrice) / product.consumerPrice) * 100)}%
+              </span>
+            )}
+            <p className="text-3xl font-bold text-black">{product.sellPrice?.toLocaleString()}원</p>
             <p className="text-gray-600 mt-2 text-sm">재고: {product.stock}개</p>
           </div>
 
-          {/* 옵션 선택 드롭다운 */}
+          {/* 커스텀 드롭다운 */}
           {product.isOption && product.options?.length ? (
             <div className="mb-6 relative w-full" ref={dropdownRef}>
               <label className="block text-gray-700 mb-2 font-medium">옵션 선택</label>
@@ -214,20 +212,17 @@ export default function ProductDetailTop({ product }: { product: Product }) {
           ) : null}
 
           {/* 선택 옵션 박스 */}
-          <div className="flex flex-col gap-4 mb-6">
+          <div className="flex flex-col gap-4 mb-6 w-full">
             {selectedOptions.map((item) => (
               <div key={item.optionId} className="border p-4 rounded-lg shadow-sm flex justify-between items-center w-full">
                 <div className="flex-1">
                   <p className="font-medium">{item.value}</p>
-
                   <div className="flex items-center gap-3 mt-2">
                     <button
                       onClick={() =>
                         setSelectedOptions((prev) =>
                           prev.map((p) =>
-                            p.optionId === item.optionId
-                              ? { ...p, count: Math.max(1, p.count - 1) }
-                              : p
+                            p.optionId === item.optionId ? { ...p, count: Math.max(1, p.count - 1) } : p
                           )
                         )
                       }
