@@ -1,7 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay } from "swiper/modules";
+import "swiper/css";
 
 interface Product {
   productId: number;
@@ -11,16 +15,16 @@ interface Product {
   mainImg: string;
 }
 
-const banners = [
-  "/images/banner1.jpg",
-  "/images/banner2.jpg",
-  "/images/banner3.jpg",
-];
+const bannerImages = ["/images/banner1.png", "/images/banner2.png", "/images/banner3.png"];
+
+const truncate = (text: string, max = 10) =>
+  text.length > max ? text.slice(0, max) + "..." : text;
 
 export default function Page() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentBanner, setCurrentBanner] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 8;
 
 
   useEffect(() => {
@@ -42,86 +46,116 @@ export default function Page() {
       .catch(() => setLoading(false));
   }, []);
 
-  // 4) 배너 자동 전환
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentBanner((prev) => (prev + 1) % banners.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
-
-
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center text-gray-500">
-        loading...
-        {/* 회전하는 시그니처 이미지 */}
+      <div className="min-h-screen flex flex-col items-center justify-center">
+        상품 불러오는 중...
         <img
-          src="/images/signature_b.png"
-          alt="loading"
-          className="w-20 h-20 animate-spin-slow"
+          src="/images/signature_w.png"
+          alt="Loading"
+          className="inline-block w-8 h-8 md:w-20 md:h-20 animate-spin-slow"
         />
       </div>
     );
   }
 
-  // Home 화면
-  return (
-    <div className="min-h-screen flex flex-col items-center bg-gray-100">
-      {/* 배너 슬라이더 */}
-      <div className="w-screen relative overflow-hidden h-[50vh]">
-        {banners.map((banner, index) => (
-          <img
-            key={index}
-            src={banner}
-            alt={`배너 ${index + 1}`}
-            className={`absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-700 ${index === currentBanner ? "opacity-100 z-10" : "opacity-0 z-0"
-              }`}
-          />
-        ))}
+  // 현재 페이지 상품 계산
+  const totalPages = Math.ceil(products.length / pageSize);
+  const startIdx = (currentPage - 1) * pageSize;
+  const currentProducts = products.slice(startIdx, startIdx + pageSize);
 
-        {/* 슬라이더 인디케이터 */}
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-3 z-20">
-          {banners.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentBanner(index)}
-              className={`w-2 h-2 rounded-full transition-colors duration-300 ease-in-out hover:cursor-pointer ${index === currentBanner
-                ? "bg-white shadow-md"
-                : "bg-white/50 hover:bg-white/80"
-                }`}
-            />
+  return (
+    <div className="w-full overflow-x-hidden">
+      {/* 배너 슬라이더 */}
+      <div className="relative w-full">
+        <Swiper
+          modules={[Autoplay]}
+          loop
+          autoplay={{ delay: 5000, disableOnInteraction: false }}
+          className="w-full h-full"
+        >
+          {bannerImages.map((src, idx) => (
+            <SwiperSlide key={idx}>
+              <img
+                src={src}
+                alt={`배너 ${idx + 1}`}
+                className="w-full h-full object-cover"
+                draggable={false}
+              />
+            </SwiperSlide>
           ))}
-        </div>
+        </Swiper>
       </div>
 
-      <div className="w-full max-w-4xl mt-8 px-4">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-          상품 목록
-        </h1>
+      {/* 상품 목록 */}
+      <div className="w-full max-w-6xl mt-24 mx-auto px-4">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">상품 목록</h1>
+
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-          {products.map((p) => (
+          {currentProducts.map((p) => (
             <Link
               key={p.productId}
               href={`/product/${p.productId}`}
-              className="bg-white rounded-xl shadow hover:shadow-lg transition p-4 flex flex-col items-center cursor-pointer"
+              className="text-center bg-white rounded-2xl shadow hover:shadow-xl transition flex flex-col cursor-pointer overflow-hidden"
             >
-              <img
-                src={p.mainImg || "/images/default_main.png"}
-                alt={p.productName}
-                className="w-full h-40 object-contain mb-3"
-              />
-              <p className="text-gray-800 text-center text-sm font-medium mb-1 line-clamp-2 h-10">
-                {p.productName}
+              <div className="w-full rounded-xl overflow-hidden flex items-center justify-center bg-white">
+                <img
+                  src={p.mainImg || "/images/default_main.png"}
+                  alt={p.productName}
+                  className="w-full h-full object-contain"
+                />
+              </div>
+
+              <p className="text-gray-800 text-center text-base font-medium mt-3 mb-1">
+                {truncate(p.productName, 15)}
               </p>
-              <p className="text-gray-500 text-xs line-through">
+
+              <p className="text-gray-500 text-sm line-through">
                 {p.consumerPrice.toLocaleString()}원
               </p>
-              <p className="text-blue-600 font-bold mt-1">
+
+              <p className="text-black font-bold mt-1 text-lg">
+                {p.consumerPrice && p.sellPrice && p.consumerPrice > p.sellPrice && (
+                  <span className="text-red-500 px-2 font-bold">
+                    {Math.round(((p.consumerPrice - p.sellPrice) / p.consumerPrice) * 100)}%
+                  </span>
+                )}
                 {p.sellPrice.toLocaleString()}원
               </p>
             </Link>
           ))}
+        </div>
+
+        {/* 페이징 */}
+        <div className="flex justify-center items-center gap-2 mt-8">
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-1 hover:bg-gray-100 transition cursor-pointer"
+          >
+            <ChevronLeft />
+          </button>
+
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              onClick={() => setCurrentPage(page)}
+              className={`px-3 py-1 border rounded transition cursor-pointer ${currentPage === page
+                ? "bg-black text-white border-black"
+                : "hover:bg-gray-100"
+                }`}
+            >
+              {page}
+            </button>
+          ))}
+
+          <button
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="px-3 py-1 hover:bg-gray-100 transition cursor-pointer"
+          >
+            <ChevronRight />
+          </button>
         </div>
       </div>
     </div>

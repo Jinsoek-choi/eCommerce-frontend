@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 "use client";
 
 import { useUser } from "@/context/UserContext";
@@ -51,5 +52,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* 🔶 메인 영역 */}
       <main className="flex-1 p-10">{children}</main>
     </div>
+=======
+import AdminSidebar from "@/app/admin/components/AdminSidebar";
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  return (
+      <div>
+        <div className="flex">
+          <AdminSidebar />
+          <main className="flex-1 p-6 ml-52">
+            {children}
+          </main>
+        </div>
+      </div>
+>>>>>>> main
   );
 }

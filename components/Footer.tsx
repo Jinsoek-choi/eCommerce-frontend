@@ -8,13 +8,7 @@ export default function Footer() {
     <footer className="bg-gray-900 text-white w-full">
       <div className="max-w-6xl mx-auto px-6 py-10 grid md:grid-cols-3 gap-8">
         <div>
-          <h3 className="text-lg font-semibold mb-2">
-            <img
-              src="/images/signature_w.png"
-              alt="Logo"
-              className="h-8 w-auto object-contain"
-            />
-          </h3>
+          <h3 className="text-lg font-semibold mb-2">YDJ</h3>
           <p className="text-gray-400 text-sm">Your Daily Journey</p>
         </div>
 
@@ -31,7 +25,7 @@ export default function Footer() {
           <h3 className="text-lg font-semibold mb-2">Contact & SNS</h3>
           <ul className="text-gray-400 text-sm space-y-1">
             <li className="flex items-center gap-1">
-              <Mail size={14} /> ydj@ecommerce.com</li>
+              <Mail size={14} /> yourdailyjourney@ydj.com</li>
             <li className="flex items-center gap-1">
               <Phone size={14} /> 010-1234-5678</li>
             <li className="flex items-center gap-1">
@@ -44,7 +38,9 @@ export default function Footer() {
         </div>
       </div>
       <div className="border-t border-gray-700 mt-4">
-        <p className="text-center text-gray-500 text-sm py-4">&copy; {new Date().getFullYear()} E-Commerce. All rights reserved.</p>
+        <p className="text-center text-gray-500 text-sm py-4">
+          &copy; {new Date().getFullYear()} Your Daily Journey. All rights reserved.
+        </p>
       </div>
     </footer>
   );
