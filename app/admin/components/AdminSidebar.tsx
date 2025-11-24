@@ -68,7 +68,7 @@ export default function AdminSidebar({ active }: SidebarProps) {
         </div>
 
         {/* 메뉴 목록 */}
-        <Link href="/admin/productList" className={linkClasses(active === "list")}>
+        <Link href="/admin/list" className={linkClasses(active === "list")}>
           상품 목록
         </Link>
         {/* 홈 버튼 */}
