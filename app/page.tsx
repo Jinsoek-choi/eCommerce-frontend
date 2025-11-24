@@ -58,12 +58,12 @@ export default function Page() {
   // 선택된 대분류에 속한 상품만 필터링
   const filteredProducts = selectedMain
     ? products.filter((p) => {
-        const mainChildren = CATEGORY_TREE[selectedMain].children;
-        const allLeafCodes = Object.values(mainChildren).flatMap((sub) =>
-          Object.keys(sub.children)
-        );
-        return allLeafCodes.includes(p.categoryCode);
-      })
+      const mainChildren = CATEGORY_TREE[selectedMain].children;
+      const allLeafCodes = Object.values(mainChildren).flatMap((sub) =>
+        Object.keys(sub.children)
+      );
+      return allLeafCodes.includes(p.categoryCode);
+    })
     : products;
 
   const totalPages = Math.ceil(filteredProducts.length / pageSize);
@@ -116,32 +116,49 @@ export default function Page() {
         </div>
 
         {/* 상품 grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-          {currentProducts.map((p) => (
-            <Link
-              key={p.productId}
-              href={`/product/${p.productId}`}
-              className="text-center bg-white rounded-2xl shadow hover:shadow-xl transition flex flex-col cursor-pointer overflow-hidden"
-            >
-              <div className="w-full rounded-xl overflow-hidden flex items-center justify-center bg-white">
-                <img src={p.mainImg || "/images/default_main.png"} alt={p.productName} className="w-full h-full object-contain" />
-              </div>
+        {loading ? (
+          // ★ 로딩 화면 ★
+          <div className="w-full flex flex-col items-center justify-center py-10">
+            <p className="text-gray-700 mb-3">상품 불러오는 중...</p>
+            <img
+              src="/images/signature_w.png"
+              alt="Loading"
+              className="inline-block w-8 h-8 md:w-20 md:h-20 animate-spin-slow"
+            />
+          </div>
+        ) : currentProducts.length === 0 ? (
+          // ★ 상품 없음 화면 ★
+          <div className="w-full flex flex-col items-center justify-center py-20">
+            <p className="text-gray-500">등록된 상품이 없습니다.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+            {currentProducts.map((p) => (
+              <Link
+                key={p.productId}
+                href={`/product/${p.productId}`}
+                className="text-center bg-white rounded-2xl shadow hover:shadow-xl transition flex flex-col cursor-pointer overflow-hidden"
+              >
+                <div className="w-full rounded-xl overflow-hidden flex items-center justify-center bg-white">
+                  <img src={p.mainImg || "/images/default_main.png"} alt={p.productName} className="w-full h-full object-contain" />
+                </div>
 
-              <p className="text-gray-800 text-center text-base font-medium mt-3 mb-1">
-                {truncate(p.productName, 15)}
-              </p>
+                <p className="text-gray-800 text-center text-base font-medium mt-3 mb-1">
+                  {truncate(p.productName, 15)}
+                </p>
 
-              <p className="text-gray-500 text-sm line-through">{p.consumerPrice.toLocaleString()}원</p>
+                <p className="text-gray-500 text-sm line-through">{p.consumerPrice.toLocaleString()}원</p>
 
-              <p className="text-black font-bold mt-1 text-lg">
-                {p.consumerPrice && p.sellPrice && p.consumerPrice > p.sellPrice && (
-                  <span className="text-red-500 px-2 font-bold">{Math.round(((p.consumerPrice - p.sellPrice) / p.consumerPrice) * 100)}%</span>
-                )}
-                {p.sellPrice.toLocaleString()}원
-              </p>
-            </Link>
-          ))}
-        </div>
+                <p className="text-black font-bold mt-1 text-lg">
+                  {p.consumerPrice && p.sellPrice && p.consumerPrice > p.sellPrice && (
+                    <span className="text-red-500 px-2 font-bold">{Math.round(((p.consumerPrice - p.sellPrice) / p.consumerPrice) * 100)}%</span>
+                  )}
+                  {p.sellPrice.toLocaleString()}원
+                </p>
+              </Link>
+            ))}
+          </div>
+        )}
 
         {/* 페이징 */}
         <div className="flex justify-center items-center gap-2 mt-8">
