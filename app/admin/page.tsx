@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import CategoryTree from "../../components/category/categoryTree";
+import Category from "../../components/category";
 
 
 interface Product {
@@ -62,11 +62,11 @@ export default function AdminMainPage() {
       {/* 🔵 왼쪽 카테고리 트리 */}
       <div className="w-72">
         {categoryTree ? (
-          <CategoryTree
+          <Category
             data={categoryTree}
-            mode="admin"
             onSelect={(leafCode) => setSelectedLeaf(leafCode)}
           />
+
         ) : (
           <p>카테고리 불러오는 중...</p>
         )}

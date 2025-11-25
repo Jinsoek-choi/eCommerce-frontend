@@ -1,5 +1,6 @@
 "use client";
 
+import { use } from "react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -11,21 +12,19 @@ interface Product {
   mainImg?: string;
 }
 
-// 절대경로 변환
 const toFullUrl = (url: string) => {
   if (!url) return "";
   if (url.startsWith("http")) return url;
   return `${process.env.NEXT_PUBLIC_API_URL}${url}`;
 };
 
-export default function CategoryPage({ params }: { params: { leafCode: string } }) {
+export default function CategoryPage({ params }: { params: Promise<{ leafCode: string }> }) {
   const router = useRouter();
+  const { leafCode } = use(params); // ⭐ params 언랩
 
-  const leafCode = params.leafCode;
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
-  // 상품 불러오기
   useEffect(() => {
     if (!leafCode) return;
 
@@ -33,8 +32,9 @@ export default function CategoryPage({ params }: { params: { leafCode: string } 
       setLoading(true);
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/products?category=${leafCode}`
+          `${process.env.NEXT_PUBLIC_API_URL}/api/products/category/${leafCode}`
         );
+
         const data = await res.json();
         setProducts(data);
       } catch (err) {

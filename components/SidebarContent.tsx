@@ -12,7 +12,7 @@ interface SidebarContentProps {
 
 export default function SidebarContent({ user, onClose }: SidebarContentProps) {
   const [search, setSearch] = useState("");
-  const [tree, setTree] = useState<any[]>([]);
+  const [tree, setTree] = useState<any>(null);
   const [open, setOpen] = useState<{ [key: string]: boolean }>({});
   const router = useRouter();
 
@@ -21,7 +21,7 @@ export default function SidebarContent({ user, onClose }: SidebarContentProps) {
     async function loadTree() {
       const res = await fetch("http://localhost:8080/api/categories/tree");
       const data = await res.json();
-      setTree(data.tree || []);
+      setTree(data.tree);
     }
     loadTree();
   }, []);
@@ -34,7 +34,7 @@ export default function SidebarContent({ user, onClose }: SidebarContentProps) {
   return (
     <div className="w-full h-full flex flex-col">
 
-      {/* 상단 로그인 영역 */}
+      {/* 로그인 & 위시리스트 */}
       <div className="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
         <div className="text-base font-semibold flex items-center gap-4">
           {user ? (
@@ -77,45 +77,53 @@ export default function SidebarContent({ user, onClose }: SidebarContentProps) {
         </div>
       </div>
 
-      {/* 아코디언 카테고리 */}
+      {/* 카테고리 */}
       <div className="flex-1 overflow-y-auto py-3 px-4">
-        {tree?.map((parent: any) => (
-          <div key={parent.code} className="mb-3">
-            
-            {/* 상위 카테고리 버튼 */}
-            <button
-              onClick={() => toggleOpen(parent.code)}
-              className="w-full flex items-center justify-between px-2 py-2 text-lg font-semibold text-gray-900 hover:text-blue-600"
-            >
-              {parent.name}
-              <ChevronDown
-                size={18}
-                className={`transition-transform duration-300 ${
-                  open[parent.code] ? "rotate-180" : ""
-                }`}
-              />
-            </button>
+        {tree &&
+          Object.entries(tree).map(([bigCode, bigNode]: any) => (
+            <div key={bigCode} className="mb-3">
 
-            {/* 하위 카테고리 목록 */}
-            {open[parent.code] && (
-              <div className="pl-4 mt-1 space-y-1">
-                {parent.children?.map((child: any) => (
-                  <button
-                    key={child.code}
-                    onClick={() => {
-                      router.push(`/category/${child.code}`);
-                      onClose();
-                    }}
-                    className="block w-full text-left text-gray-700 hover:text-black py-1"
-                  >
-                    {child.name}
-                  </button>
-                ))}
-              </div>
-            )}
+              {/* 대분류 */}
+              <button
+                onClick={() => toggleOpen(bigCode)}
+                className="w-full flex items-center justify-between px-2 py-2 text-lg font-semibold text-gray-900 hover:text-blue-600"
+              >
+                {bigNode.title}
+                <ChevronDown
+                  size={18}
+                  className={`transition-transform duration-300 ${
+                    open[bigCode] ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
 
-          </div>
-        ))}
+              {/* 중분류 */}
+              {open[bigCode] && (
+                <div className="pl-4 mt-1 space-y-2">
+                  {Object.entries(bigNode.children).map(([midCode, midNode]: any) => (
+                    <div key={midCode}>
+                      <p className="font-semibold text-gray-800">{midNode.title}</p>
+
+                      <div className="pl-3 space-y-1">
+                        {Object.entries(midNode.children).map(([leafCode, leafName]: any) => (
+                          <button
+                            key={leafCode}
+                            onClick={() => {
+                              router.push(`/category/${leafCode}`);
+                              onClose();
+                            }}
+                            className="block text-left text-gray-700 hover:text-black"
+                          >
+                            ▸ {leafName}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
       </div>
     </div>
   );
