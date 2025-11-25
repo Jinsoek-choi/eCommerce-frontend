@@ -44,26 +44,7 @@ export default function CheckoutPage() {
     detail: "",
   });
 
-<<<<<<< HEAD
-  // 기본 배송지 자동 세팅
-  useEffect(() => {
-    if (addresses.length === 0) {
-      const defaultAddress = {
-        id: 1,
-        name: "홍길동",
-        phone: "010-1234-5678",
-        address: "서울시 강남구 테헤란로 123",
-        isDefault: true,
-      };
-
-      setAddresses([defaultAddress]);
-      setSelectedAddress(1);
-    }
-  }, []);
-
-=======
   // 저장된 배송지 + myInfo 주소 불러오기
->>>>>>> main
   useEffect(() => {
     const savedAddresses = localStorage.getItem("myAddresses");
     let parsed: Address[] = savedAddresses ? JSON.parse(savedAddresses) : [];
@@ -134,24 +115,11 @@ export default function CheckoutPage() {
 
     setLoading(true);
     try {
-<<<<<<< HEAD
-      await new Promise((res) => setTimeout(res, 1000)); // 서버 요청 시뮬레이션
-
-      // ✅ 세션에 저장
-      sessionStorage.setItem("lastOrder", JSON.stringify(orderData));
-
-      router.push("/order-complete");
-
-      sessionStorage.removeItem("checkoutData");
-      clearCart();
-
-=======
       await new Promise(res => setTimeout(res, 1000));
       sessionStorage.setItem("lastOrder", JSON.stringify(orderData));
       router.push("/order/complete");
       sessionStorage.removeItem("checkoutData");
       clearCart();
->>>>>>> main
     } catch (err) {
       console.error("결제 실패", err);
     } finally {
@@ -178,12 +146,7 @@ export default function CheckoutPage() {
           {addresses.map(addr => (
             <label
               key={addr.id}
-<<<<<<< HEAD
-              className={`flex items-center justify-between border p-4 rounded-lg mb-3 cursor-pointer hover:ring-2 ${selectedAddress === addr.id ? "ring-blue-500 border-blue-300" : "border-gray-200"
-                }`}
-=======
               className={`flex justify-between items-center p-4 border rounded-lg cursor-pointer hover:ring-2 ${selectedAddress === addr.id ? "ring-blue-500 border-blue-300" : "border-gray-200"}`}
->>>>>>> main
             >
               <div className="space-y-1">
                 <p className="font-medium">{addr.name} {addr.isDefault && <span className="text-sm text-gray-500">(기본)</span>}</p>

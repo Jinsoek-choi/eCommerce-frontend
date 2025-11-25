@@ -67,7 +67,6 @@ export default function ProductDetailTop({ product }: { product: Product }) {
     ? product.subImages.map((img) => toFullUrl(img))
     : [initialMainImg]; // mainImg 없으면 default 포함
 
-
   if (thumbnails.length === 0) return null;
 
   const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
@@ -78,16 +77,10 @@ export default function ProductDetailTop({ product }: { product: Product }) {
     const likedItems: number[] = JSON.parse(localStorage.getItem("likedProducts") || "[]");
     const likeCounts: Record<number, number> = JSON.parse(localStorage.getItem("likeCounts") || "{}");
 
-<<<<<<< HEAD
-    setLiked(likedItems.includes(product.productId));
-
-    // 저장된 likeCount가 있으면 불러오기
-=======
     // 좋아요 여부
     setLiked(likedItems.includes(product.productId));
 
     // 기존 누적 좋아요 카운트 불러오기 (없으면 0)
->>>>>>> main
     setLikeCount(likeCounts[product.productId] || 0);
   }, [product.productId]);
 

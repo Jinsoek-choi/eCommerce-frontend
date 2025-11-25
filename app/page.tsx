@@ -53,9 +53,17 @@ export default function Page() {
   // 2) 대분류만 불러오기
   useEffect(() => {
     fetch("http://localhost:8080/api/categories/main")
-      .then((res) => res.json())
-      .then((data) => setMainCategories(data))
-      .catch(console.error);
+      .then((res) => res.text())
+      .then((text) => {
+        console.log("🔥 RAW RESPONSE =", text);
+        try {
+          const json = JSON.parse(text);
+          console.log("🔥 PARSED JSON =", json);
+          console.log("🔥 IS ARRAY =", Array.isArray(json));
+        } catch {
+          console.error("❌ JSON 파싱 불가 → HTML 응답임");
+        }
+      });
   }, []);
 
   // 3) 전체 트리 불러오기
