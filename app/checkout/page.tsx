@@ -39,6 +39,22 @@ export default function CheckoutPage() {
   const [showNewAddress, setShowNewAddress] = useState(false);
   const [newAddress, setNewAddress] = useState({ name: "", phone: "", address: "" });
 
+  // 기본 배송지 자동 세팅
+  useEffect(() => {
+    if (addresses.length === 0) {
+      const defaultAddress = {
+        id: 1,
+        name: "홍길동",
+        phone: "010-1234-5678",
+        address: "서울시 강남구 테헤란로 123",
+        isDefault: true,
+      };
+
+      setAddresses([defaultAddress]);
+      setSelectedAddress(1);
+    }
+  }, []);
+
   useEffect(() => {
     // 바로 구매 상품 가져오기
     const checkoutSaved = sessionStorage.getItem("checkoutData");
@@ -70,7 +86,7 @@ export default function CheckoutPage() {
 
   const handleOrder = async () => {
     if (!selectedAddress) {
-      alert("배송지를 선택해주세요.");
+      console.log("배송지를 선택해주세요.");
       return;
     }
 
@@ -83,15 +99,17 @@ export default function CheckoutPage() {
     setLoading(true);
     try {
       await new Promise((res) => setTimeout(res, 1000)); // 서버 요청 시뮬레이션
-      alert("결제 성공!");
 
-      sessionStorage.removeItem("checkoutData"); // 바로 구매 초기화
-      clearCart(); // 장바구니 초기화
+      // ✅ 세션에 저장
+      sessionStorage.setItem("lastOrder", JSON.stringify(orderData));
 
-      router.push("/order-complete"); // 결제 완료 페이지로 이동
+      router.push("/order-complete");
+
+      sessionStorage.removeItem("checkoutData");
+      clearCart();
+
     } catch (err) {
-      console.error(err);
-      alert("결제 실패! 다시 시도해주세요.");
+      console.error("결제 실패", err);
     } finally {
       setLoading(false);
     }
@@ -120,9 +138,8 @@ export default function CheckoutPage() {
           {addresses.map((addr) => (
             <label
               key={addr.id}
-              className={`flex items-center justify-between border p-4 rounded-lg mb-3 cursor-pointer hover:ring-2 ${
-                selectedAddress === addr.id ? "ring-blue-500 border-blue-300" : "border-gray-200"
-              }`}
+              className={`flex items-center justify-between border p-4 rounded-lg mb-3 cursor-pointer hover:ring-2 ${selectedAddress === addr.id ? "ring-blue-500 border-blue-300" : "border-gray-200"
+                }`}
             >
               <div>
                 <p className="font-medium">
