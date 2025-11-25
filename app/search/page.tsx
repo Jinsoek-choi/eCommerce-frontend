@@ -1,8 +1,9 @@
 "use client";
-export const dynamic = "force-dynamic";
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+
+export const dynamic = "force-dynamic";
 
 export default function SearchPage() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
