@@ -1,31 +1,28 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Trash2 } from "lucide-react";
 import Link from "next/link";
+import { Trash2 } from "lucide-react";
 
-interface Product {
+interface WishlistItem {
   productId: number;
   productName: string;
-  thumbnail: string;
-  price: number;
+  mainImg?: string;
+  sellPrice?: number;
 }
 
 export default function WishlistPage() {
-  const [wishlist, setWishlist] = useState<Product[]>([]);
+  const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 찜 목록 불러오기
   const loadWishlist = async () => {
     try {
       const res = await fetch("http://localhost:8080/api/like/my", {
         method: "GET",
-        credentials: "include", // 세션 쿠키 전송 필수
+        credentials: "include",
       });
 
-      if (!res.ok) {
-        throw new Error("찜 목록 불러오기 실패");
-      }
+      if (!res.ok) throw new Error("찜 목록 불러오기 실패");
 
       const data = await res.json();
       setWishlist(data);
@@ -40,19 +37,16 @@ export default function WishlistPage() {
     loadWishlist();
   }, []);
 
-  // 찜 삭제(토글)
   const removeItem = async (productId: number) => {
     await fetch(`http://localhost:8080/api/like/toggle/${productId}`, {
       method: "POST",
       credentials: "include",
     });
 
-    loadWishlist(); // 새로고침
+    loadWishlist();
   };
 
-  if (loading) {
-    return <p className="text-center py-10">로딩 중...</p>;
-  }
+  if (loading) return <p className="text-center py-10">로딩 중...</p>;
 
   return (
     <div className="min-h-screen bg-gray-100 py-10 px-6">
@@ -72,7 +66,7 @@ export default function WishlistPage() {
               >
                 <Link href={`/product/${item.productId}`}>
                   <img
-                    src={item.thumbnail || "/images/default_main.png"}
+                    src={item.mainImg || "/images/default_main.png"}
                     alt={item.productName}
                     className="w-full h-40 object-contain rounded-lg"
                   />
@@ -83,7 +77,9 @@ export default function WishlistPage() {
                 </p>
 
                 <p className="text-black font-bold">
-                  {item.price.toLocaleString()}원
+                  {item.sellPrice
+                    ? `${item.sellPrice.toLocaleString()}원`
+                    : ""}
                 </p>
 
                 <button
