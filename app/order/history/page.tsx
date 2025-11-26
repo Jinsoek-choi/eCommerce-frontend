@@ -16,16 +16,16 @@ interface OrderData {
     name: string;
     phone: string;
     address: string;
+    detail?: string; // 상세주소 추가
   };
   totalPrice: number;
-  orderDate: string; // 주문 날짜 추가
+  orderDate: string;
 }
 
 export default function OrderHistoryPage() {
   const [orders, setOrders] = useState<OrderData[]>([]);
 
   useEffect(() => {
-    // localStorage에서 주문 내역 불러오기
     const savedOrders = localStorage.getItem("orderHistory");
     if (savedOrders) {
       setOrders(JSON.parse(savedOrders));
@@ -55,7 +55,10 @@ export default function OrderHistoryPage() {
               <h2 className="font-semibold text-gray-800 mb-2">배송지</h2>
               <p>{order.address.name}</p>
               <p>{order.address.phone}</p>
-              <p>{order.address.address}</p>
+              <p>
+                {order.address.address}{" "}
+                {order.address.detail && order.address.detail}
+              </p>
             </div>
 
             {/* 주문 상품 */}
@@ -78,7 +81,7 @@ export default function OrderHistoryPage() {
                       <p className="text-gray-500 text-sm">수량: {opt.count}</p>
                     </div>
                     <div className="text-right font-semibold text-gray-800">
-                      {item.sellPrice.toLocaleString()}원
+                      {(item.sellPrice * opt.count).toLocaleString()}원
                     </div>
                   </div>
                 ))

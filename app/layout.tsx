@@ -1,16 +1,27 @@
 import "./globals.css";
 import { Providers } from "./providers";
 import ClientRoot from "./ClientRoot";
+import { WishlistProvider } from "../context/WishlistContext"; // 경로는 프로젝트 구조에 맞게 조정
+
+export const metadata = {
+  title: "YDJ",
+  description: "Your Daily Journey",
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko">
       <head>
-        <title>YDJ</title>
+        <title>{metadata.title}</title>
+        <meta name="description" content={metadata.description} />
       </head>
-      <body className="flex flex-col min-h-screen">
+      <body className="flex flex-col min-h-screen bg-gray-50 text-gray-900">
         <Providers>
-          <ClientRoot>{children}</ClientRoot>
+          <WishlistProvider>
+            <ClientRoot>
+              <main className="flex-1 w-full">{children}</main>
+            </ClientRoot>
+          </WishlistProvider>
         </Providers>
       </body>
     </html>

@@ -2,8 +2,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Heart, Plus, Minus, X } from "lucide-react";
-import { useUser } from "../../context/UserContext";
-import { useCart } from "../../context/CartContext";
+import { useUser } from "../../../context/UserContext";
+import { useCart } from "../../../context/CartContext";
+import { useWishlist } from "../../../context/WishlistContext";
 
 interface Option {
   optionId: number;
@@ -63,9 +64,9 @@ export default function ProductDetailTop({ product }: { product: Product }) {
   //     : [];
 
   const thumbnails: string[] =
-  product.subImages?.length
-    ? product.subImages.map((img) => toFullUrl(img))
-    : [initialMainImg]; // mainImg 없으면 default 포함
+    product.subImages?.length
+      ? product.subImages.map((img) => toFullUrl(img))
+      : [initialMainImg]; // mainImg 없으면 default 포함
 
   if (thumbnails.length === 0) return null;
 
@@ -84,29 +85,34 @@ export default function ProductDetailTop({ product }: { product: Product }) {
     setLikeCount(likeCounts[product.productId] || 0);
   }, [product.productId]);
 
+  const { addToWishlist, removeFromWishlist } = useWishlist();
+
   const handleLike = () => {
     const likedItems: number[] = JSON.parse(localStorage.getItem("likedProducts") || "[]");
     const likeCounts: Record<number, number> = JSON.parse(localStorage.getItem("likeCounts") || "{}");
-    let updatedLiked: number[];
 
     if (likedItems.includes(product.productId)) {
       // 좋아요 취소
-      updatedLiked = likedItems.filter((id) => id !== product.productId);
       setLiked(false);
-
+      removeFromWishlist(product.productId); // context 업데이트
+      const updatedLiked = likedItems.filter((id) => id !== product.productId);
       likeCounts[product.productId] = Math.max((likeCounts[product.productId] || 1) - 1, 0);
-      setLikeCount(likeCounts[product.productId]);
+      localStorage.setItem("likedProducts", JSON.stringify(updatedLiked));
     } else {
       // 좋아요 추가
-      updatedLiked = [...likedItems, product.productId];
       setLiked(true);
-
+      addToWishlist({
+        productId: product.productId,
+        productName: product.productName,
+        mainImg: product.mainImg,
+        sellPrice: product.sellPrice,
+      });
+      const updatedLiked = [...likedItems, product.productId];
       likeCounts[product.productId] = (likeCounts[product.productId] || 0) + 1;
-      setLikeCount(likeCounts[product.productId]);
+      localStorage.setItem("likedProducts", JSON.stringify(updatedLiked));
     }
 
-    // 저장
-    localStorage.setItem("likedProducts", JSON.stringify(updatedLiked));
+    setLikeCount(likeCounts[product.productId]);
     localStorage.setItem("likeCounts", JSON.stringify(likeCounts));
   };
 
@@ -153,7 +159,7 @@ export default function ProductDetailTop({ product }: { product: Product }) {
     }
 
     if (window.confirm("장바구니에 담았습니다.\n장바구니 페이지로 이동할까요?")) {
-      router.push("/cart");
+      router.push("/mypage/cart");
     }
   };
 
@@ -181,7 +187,7 @@ export default function ProductDetailTop({ product }: { product: Product }) {
 
     sessionStorage.setItem("checkoutData", JSON.stringify(orderInfo));
 
-    router.push("/checkout");
+    router.push("/order/checkout");
   };
 
   return (
@@ -196,9 +202,8 @@ export default function ProductDetailTop({ product }: { product: Product }) {
                 key={idx}
                 src={thumb}
                 alt={`썸네일 ${idx}`}
-                className={`w-20 h-20 object-contain rounded border ${
-                  mainImage === thumb ? "border-gray-800" : "border-gray-300"
-                } hover:cursor-pointer`}
+                className={`w-20 h-20 object-contain rounded border ${mainImage === thumb ? "border-gray-800" : "border-gray-300"
+                  } hover:cursor-pointer`}
                 onClick={() => setMainImage(thumb)}
               />
             ))}
@@ -266,11 +271,10 @@ export default function ProductDetailTop({ product }: { product: Product }) {
                       onClick={() =>
                         handleSelectOption({ optionId: opt.optionId, value: opt.optionValue })
                       }
-                      className={`p-2 hover:bg-blue-100 hover:cursor-pointer ${
-                        selectedOptions.some((o) => o.optionId === opt.optionId)
-                          ? "bg-gray-200"
-                          : ""
-                      }`}
+                      className={`p-2 hover:bg-blue-100 hover:cursor-pointer ${selectedOptions.some((o) => o.optionId === opt.optionId)
+                        ? "bg-gray-200"
+                        : ""
+                        }`}
                     >
                       {opt.optionValue}
                     </li>

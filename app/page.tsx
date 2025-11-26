@@ -54,25 +54,10 @@ export default function Page() {
 
   // 2) 대분류만 불러오기
   useEffect(() => {
-<<<<<<< HEAD
-    fetch("http://localhost:8080/api/categories/main")
-      .then((res) => res.text())
-      .then((text) => {
-        console.log("🔥 RAW RESPONSE =", text);
-        try {
-          const json = JSON.parse(text);
-          console.log("🔥 PARSED JSON =", json);
-          console.log("🔥 IS ARRAY =", Array.isArray(json));
-        } catch {
-          console.error("❌ JSON 파싱 불가 → HTML 응답임");
-        }
-      });
-=======
     fetch(`${API_URL}/api/categories/main`)
       .then((res) => res.json())
       .then((data) => setMainCategories(data))
       .catch(console.error);
->>>>>>> main
   }, []);
 
   // 3) 전체 트리 불러오기
@@ -121,14 +106,14 @@ export default function Page() {
         modules={[Autoplay]}
         loop
         autoplay={{ delay: 5000, disableOnInteraction: false }}
-        className="w-full h-[45vh] sm:h-[55vh] md:h-[65vh]"
+        className="w-full"
       >
         {bannerImages.map((src, idx) => (
           <SwiperSlide key={idx}>
             <img
               src={src}
               alt={`banner-${idx}`}
-              className="w-full h-full object-cover"
+              className="w-full object-cover"
               draggable={false}
             />
           </SwiperSlide>
@@ -136,8 +121,8 @@ export default function Page() {
       </Swiper>
 
       {/* 상품 목록 */}
-      <div className="w-full max-w-6xl mt-24 mx-auto px-4">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+      <div className="w-full max-w-6xl mx-auto my-12 px-4">
+        <h1 className="text-3xl font-bold text-gray-900 mb-4 text-center">
           상품 목록
         </h1>
 

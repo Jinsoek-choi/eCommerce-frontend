@@ -1,7 +1,7 @@
 "use client";
 
-import ProductDetailTop from "@/components/product/ProductDetailTop";
-import ProductDetailBottom from "@/components/product/ProductDetailBottom";
+import ProductDetailTop from "@/app/product/components/ProductDetailTop";
+import ProductDetailBottom from "@/app/product/components/ProductDetailBottom";
 
 export default function ProductDetailClient({ product }: any) {
   return (

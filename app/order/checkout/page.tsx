@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 
@@ -44,7 +44,7 @@ export default function CheckoutPage() {
     detail: "",
   });
 
-  // 저장된 배송지 + myInfo 주소 불러오기
+  // 배송지 불러오기
   useEffect(() => {
     const savedAddresses = localStorage.getItem("myAddresses");
     let parsed: Address[] = savedAddresses ? JSON.parse(savedAddresses) : [];
@@ -52,23 +52,20 @@ export default function CheckoutPage() {
     const myInfoRaw = localStorage.getItem("myInfo");
     if (myInfoRaw) {
       const myInfo = JSON.parse(myInfoRaw);
-
       if (myInfo.address) {
         const myInfoAddress: Address = {
           id: 999,
           name: myInfo.name || "내 정보",
           phone: myInfo.phone || "",
           address: myInfo.address || "",
-          detail: myInfo.detailAddress || "", // 상세주소 안전하게
+          detail: myInfo.detailAddress || "",
           isDefault: true,
         };
-
         if (!parsed.some(a => a.id === 999)) parsed.unshift(myInfoAddress);
       }
     }
 
     setAddresses(parsed);
-
     const defaultOne = parsed.find(a => a.isDefault);
     setSelectedAddress(defaultOne ? defaultOne.id : parsed[0]?.id || null);
   }, []);
@@ -103,7 +100,7 @@ export default function CheckoutPage() {
 
   const handleOrder = async () => {
     if (!selectedAddress) {
-      console.log("배송지를 선택해주세요.");
+      alert("배송지를 선택해주세요.");
       return;
     }
 
@@ -111,11 +108,18 @@ export default function CheckoutPage() {
       items: itemsToShow,
       address: addresses.find(a => a.id === selectedAddress),
       totalPrice,
+      orderDate: new Date().toLocaleString(), // 주문 날짜
     };
 
     setLoading(true);
     try {
       await new Promise(res => setTimeout(res, 1000));
+
+      // 주문 내역 저장
+      const existingOrders = JSON.parse(localStorage.getItem("orderHistory") || "[]");
+      existingOrders.push(orderData);
+      localStorage.setItem("orderHistory", JSON.stringify(existingOrders));
+
       sessionStorage.setItem("lastOrder", JSON.stringify(orderData));
       router.push("/order/complete");
       sessionStorage.removeItem("checkoutData");
