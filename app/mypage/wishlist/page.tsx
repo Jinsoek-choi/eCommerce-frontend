@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Trash2 } from "lucide-react";
+import { useWishlist } from "../../../context/WishlistContext";
 
 interface WishlistItem {
   productId: number;
@@ -13,6 +14,7 @@ interface WishlistItem {
 
 export default function WishlistPage() {
   const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
+  // const {wishlist, removeFromWishlist } = useWishlist();
   const [loading, setLoading] = useState(true);
 
   const loadWishlist = async () => {
@@ -77,12 +79,14 @@ export default function WishlistPage() {
                 </p>
 
                 <p className="text-black font-bold">
+                  {/* {item.sellPrice.toLocaleString()}원 */}
                   {item.sellPrice
                     ? `${item.sellPrice.toLocaleString()}원`
                     : ""}
                 </p>
 
                 <button
+                // onClick={() => removeFromWishlist(item.productId)}
                   onClick={() => removeItem(item.productId)}
                   className="flex items-center gap-1 px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition text-sm mt-2"
                 >
