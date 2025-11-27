@@ -42,12 +42,7 @@ export default function ProductDetailTop({ product }: { product: Product }) {
   const { user } = useUser();
   const { addToCart } = useCart();
 
-<<<<<<< HEAD:app/product/components/ProductDetailTop.tsx
   if (!product.mainImg) return null;
-=======
-  const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(0);
->>>>>>> dongchimi:components/product/ProductDetailTop.tsx
 
   const [liked, setLiked] = useState<boolean>(product.userLiked ?? false);
   const [likeCount, setLikeCount] = useState<number>(product.likeCount ?? 0);
@@ -57,25 +52,13 @@ export default function ProductDetailTop({ product }: { product: Product }) {
 
   if (!mainImage) return null;
 
-<<<<<<< HEAD:app/product/components/ProductDetailTop.tsx
   const thumbnails: string[] = product.subImages?.length
     ? product.subImages.map((img) => toFullUrl(img))
     : [initialMainImg];
-=======
-  const thumbnails: string[] =
-    product.subImages?.length
-      ? product.subImages.map((img) => toFullUrl(img))
-      : product.mainImg
-      ? [initialMainImg]
-      : [];
-
-  if (thumbnails.length === 0) return null;
->>>>>>> dongchimi:components/product/ProductDetailTop.tsx
 
   const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
   const detailRef = useRef<HTMLDivElement>(null);
 
-<<<<<<< HEAD:app/product/components/ProductDetailTop.tsx
   /** 좋아요 API */
   const handleLike = async () => {
     try {
@@ -99,31 +82,6 @@ export default function ProductDetailTop({ product }: { product: Product }) {
     } catch (e) {
       console.error("좋아요 요청 실패", e);
     }
-=======
-  /** 좋아요 초기화 */
-  useEffect(() => {
-    const likedItems: number[] = JSON.parse(localStorage.getItem("likedProducts") || "[]");
-    setLiked(likedItems.includes(product.productId));
-  }, [product.productId]);
-
-  const handleLike = () => {
-    const likedItems: number[] = JSON.parse(localStorage.getItem("likedProducts") || "[]");
-    let updated: number[];
-
-    if (likedItems.includes(product.productId)) {
-      // 좋아요 취소
-      updated = likedItems.filter((id) => id !== product.productId);
-      setLiked(false);
-      setLikeCount((prev) => Math.max(prev - 1, 0)); // 음수 방지
-    } else {
-      // 좋아요 추가
-      updated = [...likedItems, product.productId];
-      setLiked(true);
-      setLikeCount((prev) => prev + 1);
-    }
-
-    localStorage.setItem("likedProducts", JSON.stringify(updated));
->>>>>>> dongchimi:components/product/ProductDetailTop.tsx
   };
 
   /** 옵션 Dropdown */
@@ -373,7 +331,6 @@ export default function ProductDetailTop({ product }: { product: Product }) {
               </div>
             ))}
           </div>
-<<<<<<< HEAD:app/product/components/ProductDetailTop.tsx
 
           {/* 버튼 영역 */}
           <div className="flex flex-col md:flex-row items-center gap-4 w-full">
@@ -413,46 +370,6 @@ export default function ProductDetailTop({ product }: { product: Product }) {
               구매하기
             </button>
           </div>
-=======
-          {/* 버튼 + 좋아요 (관리자면 숨김) */}
-          {user && user.role !== "ADMIN" && (
-            <div className="flex flex-col md:flex-row items-center gap-4 w-full">
-              <button
-                onClick={handleLike}
-                className={`flex items-center gap-2 p-2 border rounded-lg transition-all w-full md:w-auto ${
-                  liked ? "bg-rose-50 border-rose-300" : "bg-white border-gray-300"
-                } hover:cursor-pointer`}
-              >
-                <Heart
-                  className={`w-7 h-7 ${
-                    liked ? "fill-rose-500 stroke-rose-500" : "stroke-gray-400"
-                  }`}
-                />
-                <span
-                  className={`text-base font-medium ${
-                    liked ? "text-rose-500" : "text-gray-500"
-                  }`}
-                >
-                  {likeCount}
-                </span>
-              </button>
-
-              <button
-                onClick={handleAddToCart}
-                className="flex-1 w-full bg-gray-100 text-gray-600 py-3 rounded-lg hover:bg-gray-200 hover:cursor-pointer"
-              >
-                장바구니
-              </button>
-
-              <button
-                onClick={handleBuyNow}
-                className="flex-1 w-full bg-gray-700 text-white py-3 rounded-lg hover:bg-gray-800 hover:cursor-pointer"
-              >
-                구매하기
-              </button>
-            </div>
-          )}
->>>>>>> dongchimi:components/product/ProductDetailTop.tsx
         </div>
       </div>
     </div>

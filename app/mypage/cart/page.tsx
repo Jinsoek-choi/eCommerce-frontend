@@ -7,10 +7,6 @@ import { useRouter } from "next/navigation";
 
 export default function CartPage() {
   const router = useRouter();
-<<<<<<< HEAD:app/mypage/cart/page.tsx
-  const { cart, deleteItem, updateQuantity, clearCart } = useCart(); // ← clearCart 추가!
-  
-=======
   const { cart, initialLoading, deleteItem, updateQuantity } = useCart();
 
   // 1)초기 로딩 중일 때
@@ -36,7 +32,6 @@ export default function CartPage() {
   }
 
   // 3) 장바구니가 있을 때
->>>>>>> dongchimi:app/cart/page.tsx
   const totalPrice = cart.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
@@ -48,20 +43,7 @@ export default function CartPage() {
 
         {/* 장바구니 목록 */}
         <div className="lg:col-span-2 bg-white rounded-xl shadow p-6 flex flex-col gap-6">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">장바구니</h1>
-
-            {/* 🔥 전체삭제 버튼 */}
-            {cart.length > 0 && (
-              <button
-                onClick={clearCart}
-                className="flex items-center gap-1 px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition text-sm cursor-pointer"
-              >
-                <Trash2 size={16} />
-                전체삭제
-              </button>
-            )}
-          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">장바구니</h1>
 
           {cart.map((item) => (
             <div
@@ -134,61 +116,6 @@ export default function CartPage() {
                       {(item.price * item.quantity).toLocaleString()}원
                     </p>
 
-<<<<<<< HEAD:app/mypage/cart/page.tsx
-                    {item.option && (
-                      <p className="text-gray-500 text-sm mt-1">
-                        옵션: [{item.option.optionTitle}] {item.option.optionValue}
-                      </p>
-                    )}
-
-                    {item.soldOut && (
-                      <p className="text-red-500 text-sm font-semibold mt-1">
-                        품절된 상품입니다
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-between mt-3">
-
-                    {/* 수량 조절 */}
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() =>
-                          updateQuantity(item.cartId, Math.max(1, item.quantity - 1))
-                        }
-                        className="p-1 bg-gray-400 rounded hover:bg-gray-500 transition cursor-pointer"
-                      >
-                        <Minus size={16} />
-                      </button>
-
-                      <span className="w-6 text-center text-gray-800 font-medium">
-                        {item.quantity}
-                      </span>
-
-                      <button
-                        onClick={() =>
-                          updateQuantity(item.cartId, item.quantity + 1)
-                        }
-                        className="p-1 bg-gray-400 rounded hover:bg-gray-500 transition cursor-pointer"
-                      >
-                        <Plus size={16} />
-                      </button>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <p className="text-gray-900 font-bold">
-                        {(item.price * item.quantity).toLocaleString()}원
-                      </p>
-
-                      <button
-                        onClick={() => deleteItem(item.cartId)}
-                        className="flex items-center gap-1 px-3 py-1 text-red-500 rounded-lg hover:bg-red-600 transition text-sm cursor-pointer"
-                      >
-                        <Trash2 size={14} /> 삭제
-                      </button>
-                    </div>
-                  </div>
-=======
                     <button
                       onClick={() => deleteItem(item.cartId)}
                       className="flex items-center gap-1 px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition text-sm cursor-pointer"
@@ -197,7 +124,6 @@ export default function CartPage() {
                     </button>
                   </div>
 
->>>>>>> dongchimi:app/cart/page.tsx
                 </div>
               </div>
             </div>
@@ -208,23 +134,6 @@ export default function CartPage() {
         <div className="bg-white rounded-xl shadow p-6 flex flex-col gap-6 h-fit sticky top-10">
           <h2 className="text-xl font-bold text-gray-900 mb-2">결제 정보</h2>
 
-<<<<<<< HEAD:app/mypage/cart/page.tsx
-            <div className="flex flex-col gap-3 text-gray-700">
-              <div className="flex justify-between">
-                <span>상품 금액</span>
-                <span>{totalPrice.toLocaleString()}원</span>
-              </div>
-              <div className="flex justify-between">
-                <span>배송비</span>
-                <span className="text-blue-600">무료</span>
-              </div>
-              <div className="flex justify-between pt-3 border-t font-bold text-lg">
-                <span>총 결제 금액</span>
-                <span className="text-blue-600">
-                  {totalPrice.toLocaleString()}원
-                </span>
-              </div>
-=======
           <div className="flex flex-col gap-3 text-gray-700">
             <div className="flex justify-between">
               <span>상품 금액</span>
@@ -237,7 +146,6 @@ export default function CartPage() {
             <div className="flex justify-between pt-3 border-t font-bold text-lg">
               <span>총 결제 금액</span>
               <span className="text-blue-600">{totalPrice.toLocaleString()}원</span>
->>>>>>> dongchimi:app/cart/page.tsx
             </div>
           </div>
 

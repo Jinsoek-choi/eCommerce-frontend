@@ -109,12 +109,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
   function updateQuantity(cartId: number, quantity: number) {
     if (isAdmin || !user) return;
 
-<<<<<<< HEAD
-    axios
-      .put("http://localhost:8080/api/cart/quantity", { cartId, quantity })
-      .then(() => loadCart())
-      .catch((err) => console.error("수량 변경 실패:", err));
-=======
     // UI 먼저 수정
     setCart((prev) =>
       prev.map((item) => (item.cartId === cartId ? { ...item, quantity } : item))
@@ -122,9 +116,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     // 서버 요청은 디바운스 적용
     axios
-      .put("http://localhost:8080/api/cart/quantity", { cartId, quantity })
+      .put(`${API_URL}/api/cart/quantity`, { cartId, quantity })
       .then(() => debouncedLoadCart());
->>>>>>> dongchimi
   }
 
   /** --------------------------------------
@@ -133,32 +126,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
   function changeOption(cartId: number, newOptionId: number) {
     if (isAdmin || !user) return;
 
-<<<<<<< HEAD
-    axios
-      .put("http://localhost:8080/api/cart/option", { cartId, newOptionId })
-      .then(() => loadCart())
-      .catch((err) => console.error("옵션 변경 실패:", err));
-=======
-    // Optimistic UI 업데이트
-    setCart((prev) =>
-      prev.map((item) => {
-        if (item.cartId !== cartId) return item;
+    // // Optimistic UI 업데이트
+    // setCart((prev) =>
+    //   prev.map((item) => {
+    //     if (item.cartId !== cartId) return item;
 
-        return {
-          ...item,
-          option: item.option
-            ? { ...item.option, optionId: newOptionId }
-            : { optionId: newOptionId },
-        };
-      })
-    );
-
+    //     return {
+    //       ...item,
+    //       option: item.option
+    //         ? { ...item.option, optionId: newOptionId }
+    //         : { optionId: newOptionId },
+    //     };
+    //   })
+    // );
 
     // 서버 요청 (디바운스 적용)
     axios
-      .put("http://localhost:8080/api/cart/option", { cartId, newOptionId })
+      .put(`${API_URL}/api/cart/option`, { cartId, newOptionId })
       .then(() => debouncedLoadCart());
->>>>>>> dongchimi
   }
 
 
@@ -169,13 +154,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (isAdmin || !user) return;
 
     axios
-      .delete(`http://localhost:8080/api/cart/${cartId}`)
-<<<<<<< HEAD
-      .then(() => loadCart())
-      .catch((err) => console.error("아이템 삭제 실패:", err));
-=======
+      .delete(`${API_URL}/api/cart/${cartId}`)
       .then(() => debouncedLoadCart());
->>>>>>> dongchimi
   }
 
   /** 장바구니 비우기 */
@@ -183,17 +163,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setCart([]);
   }
 
-<<<<<<< HEAD
-  /** 로그인/로그아웃 및 role 변경 감지 */
-  useEffect(() => {
-    if (!user || !user.id || isAdmin) {
-      setCart([]);
-      return;
-    }
-
-    loadCart();
-  }, [user?.id, isAdmin]);
-=======
   /** --------------------------------------
    * 로그인 상태 변화 감지하여 장바구니 로딩
    * -------------------------------------- */
@@ -204,16 +173,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
     loadCart();
   }, [user, isAdmin, loadCart]);
->>>>>>> dongchimi
 
   return (
     <CartContext.Provider
       value={{
         cart,
-<<<<<<< HEAD
-=======
         initialLoading,  
->>>>>>> dongchimi
         loadCart,
         addToCart,
         updateQuantity,

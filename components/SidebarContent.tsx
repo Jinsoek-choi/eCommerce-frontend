@@ -60,42 +60,16 @@ export default function SidebarContent({ user, onClose }: SidebarContentProps) {
         </div>
 
         <div className="flex items-center gap-5">
-<<<<<<< HEAD
-          <Link href="/wishlist" onClick={onClose}>
-            <Heart size={22} className="text-gray-600 hover:text-black" />
-          </Link>
-
-          {/* 🔥 카트 아이콘 + 배지 */}
-          <Link href="/cart" onClick={onClose} className="relative">
-            <ShoppingCart size={22} className="text-gray-600 hover:text-black" />
-
-            {/* 🔥 배지 표시 */}
-            {cart.length > 0 && (
-              <span
-                className="
-                  absolute -top-2 -right-2 
-                  bg-red-500 text-white 
-                  text-xs font-bold
-                  w-5 h-5 flex items-center justify-center
-                  rounded-full shadow
-                "
-              >
-                {cart.length}
-              </span>
-            )}
-          </Link>
-=======
           {user && user.role !== "ADMIN" && (
             <>
-              <Link href="/wishlist" onClick={onClose}>
+              <Link href="mypage/wishlist" onClick={onClose}>
                 <Heart size={22} className="text-gray-600 hover:text-black" />
               </Link>
-              <Link href="/cart" onClick={onClose}>
+              <Link href="mypage/cart" onClick={onClose}>
                 <ShoppingCart size={22} className="text-gray-600 hover:text-black" />
               </Link>
             </>
           )}
->>>>>>> dongchimi
         </div>
 
       </div>
