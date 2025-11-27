@@ -83,7 +83,7 @@ export default function SidebarContent({ user, onClose }: SidebarContentProps) {
             placeholder="카테고리를 검색하세요"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="bg-transparent w-full px-2 py-2 outline-none text-sm"
+            className="text-black w-full px-2 py-2 outline-none text-sm"
           />
         </div>
       </div>
@@ -97,7 +97,7 @@ export default function SidebarContent({ user, onClose }: SidebarContentProps) {
               {/* 대분류 */}
               <button
                 onClick={() => toggleOpen(bigCode)}
-                className="w-full flex items-center justify-between px-2 py-2 text-lg font-semibold text-gray-900 hover:text-blue-600"
+                className="w-full flex items-center justify-between px-2 py-2 text-lg font-semibold text-gray-900 hover:text-blue-600 cursor-pointer"
               >
                 {bigNode.title}
                 <ChevronDown
@@ -121,7 +121,7 @@ export default function SidebarContent({ user, onClose }: SidebarContentProps) {
                               router.push(`/category/${leafCode}`);
                               onClose();
                             }}
-                            className="block text-left text-gray-700 hover:text-black"
+                            className="block text-left text-gray-700 hover:text-black cursor-pointer"
                           >
                             ▸ {leafName}
                           </button>

@@ -38,9 +38,9 @@ export default function Page() {
   const pageSize = 8;
 
   const bannerImages = [
-    "/images/banner1(h-300).png",
-    "/images/banner2(h-300).png",
-    "/images/banner3(h-300).png",
+    "/images/banner1.png",
+    "/images/banner2.png",
+    "/images/banner3.png",
   ];
 
   const truncate = (text: string, max = 15) =>
@@ -105,7 +105,7 @@ export default function Page() {
         modules={[Autoplay]}
         loop
         autoplay={{ delay: 5000, disableOnInteraction: false }}
-        className="w-full h-[300px]"
+        className="w-full"
       >
         {bannerImages.map((src, idx) => (
           <SwiperSlide key={idx}>

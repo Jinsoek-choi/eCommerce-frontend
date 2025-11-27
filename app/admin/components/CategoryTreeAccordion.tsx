@@ -25,7 +25,7 @@ export default function CategoryTreeAccordion({ data, onSelect }: CategoryTreePr
           {/* 🔵 대분류 */}
           <button
             onClick={() => toggleBig(bigCode)}
-            className="w-full flex items-center justify-between px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded"
+            className="w-full flex items-center justify-between px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded cursor-pointer"
           >
             <span className="font-semibold">{bigNode.title}</span>
             {openBig[bigCode] ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -38,7 +38,7 @@ export default function CategoryTreeAccordion({ data, onSelect }: CategoryTreePr
                   {/* 🟣 중분류 */}
                   <button
                     onClick={() => toggleMid(midCode)}
-                    className="w-full flex items-center justify-between px-3 py-2 bg-gray-600 hover:bg-gray-500 rounded"
+                    className="w-full flex items-center justify-between px-3 py-2 bg-gray-600 hover:bg-gray-500 rounded cursor-pointer"
                   >
                     <span>{midNode.title}</span>
                     {openMid[midCode] ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -51,7 +51,7 @@ export default function CategoryTreeAccordion({ data, onSelect }: CategoryTreePr
                         <p
                           key={leafCode}
                           onClick={() => onSelect(leafCode)}
-                          className="px-3 py-1 rounded cursor-pointer bg-gray-500 hover:bg-gray-400"
+                          className="px-3 py-1 rounded cursor-pointer bg-gray-500 hover:bg-gray-400 cursor-pointer"
                         >
                           {leafNode}
                         </p>

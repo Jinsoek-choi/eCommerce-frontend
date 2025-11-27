@@ -12,14 +12,15 @@ interface WishlistItem {
   sellPrice?: number;
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function WishlistPage() {
   const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
-  // const {wishlist, removeFromWishlist } = useWishlist();
   const [loading, setLoading] = useState(true);
 
   const loadWishlist = async () => {
     try {
-      const res = await fetch("http://localhost:8080/api/like/my", {
+      const res = await fetch(`${API_URL}/api/like/my`, {
         method: "GET",
         credentials: "include",
       });
@@ -40,12 +41,15 @@ export default function WishlistPage() {
   }, []);
 
   const removeItem = async (productId: number) => {
-    await fetch(`http://localhost:8080/api/like/toggle/${productId}`, {
-      method: "POST",
-      credentials: "include",
-    });
-
-    loadWishlist();
+    try {
+      await fetch(`${API_URL}/api/like/toggle/${productId}`, {
+        method: "POST",
+        credentials: "include",
+      });
+      loadWishlist();
+    } catch (e) {
+      console.error("삭제 실패", e);
+    }
   };
 
   if (loading) return <p className="text-center py-10">로딩 중...</p>;
@@ -79,14 +83,10 @@ export default function WishlistPage() {
                 </p>
 
                 <p className="text-black font-bold">
-                  {/* {item.sellPrice.toLocaleString()}원 */}
-                  {item.sellPrice
-                    ? `${item.sellPrice.toLocaleString()}원`
-                    : ""}
+                  {item.sellPrice ? `${item.sellPrice.toLocaleString()}원` : ""}
                 </p>
 
                 <button
-                // onClick={() => removeFromWishlist(item.productId)}
                   onClick={() => removeItem(item.productId)}
                   className="flex items-center gap-1 px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition text-sm mt-2"
                 >

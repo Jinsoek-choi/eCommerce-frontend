@@ -138,6 +138,10 @@ export default function CheckoutPage() {
       </div>
     );
 
+  function deleteItem(cartId: number) {
+    throw new Error("Function not implemented.");
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-4xl mx-auto space-y-8">
@@ -205,17 +209,43 @@ export default function CheckoutPage() {
         {/* 주문 상품 */}
         <div className="bg-white rounded-2xl shadow p-6 space-y-4">
           <h2 className="text-xl font-semibold text-gray-800">주문 상품</h2>
-          {itemsToShow.map(item => item.options.map(opt => (
-            <div key={`${item.productId}-${opt.optionId}`} className="flex items-center gap-4 bg-gray-50 p-3 rounded-lg shadow-sm">
-              <img src={item.mainImg || "/images/default_main.png"} className="w-20 h-20 object-contain rounded border" />
-              <div className="flex-1">
-                <p className="font-medium text-gray-800">{item.productName}</p>
-                <p className="text-gray-500 text-sm">{opt.value}</p>
-                <p className="text-gray-500 text-sm">수량: {opt.count}</p>
+          {itemsToShow.map(item =>
+            item.options.map(opt => (
+              <div
+                key={`${item.productId}-${opt.optionId}`}
+                className="flex items-center gap-4 bg-gray-50 p-3 rounded-lg shadow-sm"
+              >
+                <img
+                  src={item.mainImg || "/images/default_main.png"}
+                  className="w-20 h-20 object-contain rounded border"
+                />
+                <div className="flex-1">
+                  <p className="font-medium text-gray-800">{item.productName}</p>
+                  <p className="text-gray-500 text-sm">{opt.value}</p>
+                  <p className="text-gray-500 text-sm">수량: {opt.count}</p>
+                </div>
+                <div className="text-right font-semibold text-gray-800">
+                  {(item.sellPrice * opt.count).toLocaleString()}원
+                </div>
+                {/* 삭제 버튼 */}
+                {cart.some(c => c.productId === item.productId) && (
+                  <button
+                    onClick={() => {
+                      const cartItem = cart.find(
+                        c =>
+                          c.productId === item.productId &&
+                          (c.option?.optionId ?? 0) === (opt.optionId ?? 0)
+                      );
+                      if (cartItem) deleteItem(cartItem.cartId);
+                    }}
+                    className="ml-2 px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm cursor-pointer"
+                  >
+                    삭제
+                  </button>
+                )}
               </div>
-              <div className="text-right font-semibold text-gray-800">{(item.sellPrice * opt.count).toLocaleString()}원</div>
-            </div>
-          )))}
+            ))
+          )}
         </div>
 
         {/* 결제 금액 */}

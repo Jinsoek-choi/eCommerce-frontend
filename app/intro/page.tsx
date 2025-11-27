@@ -83,7 +83,7 @@ export default function IntroPage() {
 
       <button
         onClick={goHome}
-        className="mt-10 px-8 py-4 bg-blue-600 text-white rounded-full text-xl font-semibold"
+        className="mt-10 px-8 py-4 bg-blue-600 text-white rounded-full text-xl font-semibold cursor-pointer"
       >
         Start Now
       </button>

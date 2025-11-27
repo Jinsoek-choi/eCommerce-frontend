@@ -41,10 +41,12 @@ export default function AdminMainPage() {
     }
 
     const fetchProducts = async () => {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL;
+      
       setLoading(true);
       try {
         const res = await fetch(
-          `http://localhost:8080/api/products?category=${selectedLeaf}`
+          `${API_URL}/api/products?category=${selectedLeaf}`
         );
         const data = await res.json();
         setProducts(data);
