@@ -61,12 +61,7 @@ export default function AdminSidebar({ active }: SidebarProps) {
               >
                 상품 등록
               </Link>
-              <Link
-                href="/admin/productEdit/1"
-                className={linkClasses(active === "edit")}
-              >
-                상품 수정
-              </Link>
+              
             </div>
           )}
         </div>

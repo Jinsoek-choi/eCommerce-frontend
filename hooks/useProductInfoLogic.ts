@@ -103,15 +103,24 @@ export function useProductInfoLogic(
 
     try {
       if (product.isOption) {
+        // ✅ 옵션 상품: optionValue에는 "문자열 옵션명"을 보낸다
         for (const opt of selectedOptions) {
-          // CartContext의 addToCart 호출
-          await addToCart(product.productId, opt.optionId, opt.count);
+          await addToCart(
+            product.productId,
+            opt.value,      // 🔥 여기! opt.optionId 말고 opt.value
+            opt.count
+          );
         }
       } else {
+        // ✅ 단일 상품: optionValue = null
         await addToCart(product.productId, null, 1);
       }
 
-      if (window.confirm("장바구니에 담았습니다.\n장바구니 페이지로 이동할까요?")) {
+      if (
+        window.confirm(
+          "장바구니에 담았습니다.\n장바구니 페이지로 이동할까요?"
+        )
+      ) {
         router.push("/mypage/cart");
       }
     } catch (err) {
