@@ -3,13 +3,19 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Button from "../../ui/Button";
+import { toFullUrlCDN } from "@/lib/utils/toFullUrlCDN";
+
 
 interface OrderItem {
+  orderItemId: number;
   productId: number;
   productName: string;
   mainImg?: string;
-  sellPrice: number;
-  options: { optionId: number; value: string; count: number }[];
+  optionId?: number | null;
+  optionValue?: string | null;
+  quantity: number;
+  price: number;
+  subtotal: number;
 }
 
 interface Address {
@@ -20,10 +26,12 @@ interface Address {
 }
 
 interface OrderData {
-  items: OrderItem[];
-  address: Address;
+  orderNumber: string;
   totalPrice: number;
-  orderDate?: string;
+  paymentMethod: string;
+  status: string;
+  items: OrderItem[];
+  address?: Address; // 안전하게 처리
 }
 
 export default function OrderCompletePage() {
@@ -32,12 +40,17 @@ export default function OrderCompletePage() {
 
   useEffect(() => {
     const savedOrder = sessionStorage.getItem("lastOrder");
+
     if (savedOrder) {
       const data: OrderData = JSON.parse(savedOrder);
       setOrder(data);
 
+      // 주문 내역 로컬스토리지 저장
       const history = JSON.parse(localStorage.getItem("orderHistory") || "[]");
-      const newHistory = [{ ...data, orderDate: new Date().toLocaleString() }, ...history];
+      const newHistory = [
+        { ...data, orderDate: new Date().toLocaleString() },
+        ...history,
+      ];
       localStorage.setItem("orderHistory", JSON.stringify(newHistory));
 
       setTimeout(() => sessionStorage.removeItem("lastOrder"), 0);
@@ -63,36 +76,52 @@ export default function OrderCompletePage() {
         </div>
 
         {/* 배송지 */}
-        <Card title="배송지">
-          <div className="space-y-1 text-gray-700">
-            <p className="font-medium">{order.address.name}</p>
-            <p>{order.address.phone}</p>
-            <p>{order.address.address} {order.address.detail || ""}</p>
-          </div>
-        </Card>
+        {order.address && (
+          <Card title="배송지">
+            <div className="space-y-1 text-gray-700">
+              <p className="font-medium">{order.address.name}</p>
+              <p>{order.address.phone}</p>
+              <p>
+                {order.address.address} {order.address.detail || ""}
+              </p>
+            </div>
+          </Card>
+        )}
 
         {/* 주문 상품 */}
         <Card title="주문 상품">
           <div className="space-y-4">
-            {order.items.map((item) =>
-              item.options.map((opt) => (
-                <div key={`${item.productId}-${opt.optionId}`} className="flex items-center gap-4 bg-white p-3 rounded-xl shadow-sm hover:shadow-md transition">
-                  <img
-                    src={item.mainImg || "/images/default_main.png"}
-                    alt={item.productName}
-                    className="w-20 h-20 object-contain rounded border"
-                  />
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-800">{item.productName}</p>
-                    <p className="text-gray-500 text-sm">{opt.value}</p>
-                    <p className="text-gray-500 text-sm">수량: {opt.count}</p>
-                  </div>
-                  <div className="text-right font-semibold text-gray-800">
-                    {item.sellPrice.toLocaleString()}원
-                  </div>
+            {order.items.map((item) => (
+              <div
+                key={item.orderItemId}
+                className="flex items-center gap-4 bg-white p-3 rounded-xl shadow-sm hover:shadow-md transition"
+              >
+                <img
+                  src={toFullUrlCDN(item.mainImg)} // 서버에서 이미지 안 주므로 안전 처리
+                  alt={item.productName}
+                  className="w-20 h-20 object-contain rounded border"
+                />
+
+                <div className="flex-1">
+                  <p className="font-medium text-gray-800">
+                    {item.productName}
+                  </p>
+
+                  {/* 옵션값 표시 */}
+                  {item.optionValue && (
+                    <p className="text-gray-500 text-sm">{item.optionValue}</p>
+                  )}
+
+                  <p className="text-gray-500 text-sm">
+                    수량: {item.quantity}
+                  </p>
                 </div>
-              ))
-            )}
+
+                <div className="text-right font-semibold text-gray-800">
+                  {item.subtotal.toLocaleString()}원
+                </div>
+              </div>
+            ))}
           </div>
         </Card>
 
@@ -100,7 +129,9 @@ export default function OrderCompletePage() {
         <Card title="결제 금액">
           <div className="flex justify-between text-gray-700 mb-2">
             <span>총 결제 금액</span>
-            <span className="font-bold text-red-600 text-lg">{order.totalPrice.toLocaleString()}원</span>
+            <span className="font-bold text-red-600 text-lg">
+              {order.totalPrice.toLocaleString()}원
+            </span>
           </div>
         </Card>
 

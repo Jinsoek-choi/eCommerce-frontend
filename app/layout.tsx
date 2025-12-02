@@ -13,6 +13,8 @@ import "./globals.css";
 import { Providers } from "./providers";
 import ClientRoot from "./ClientRoot";
 import { WishlistProvider } from "../context/WishlistContext"; // 경로는 프로젝트 구조에 맞게 조정
+import React from "react";
+import Script from "next/script";
 
 export const metadata = {
   title: "YDJ",
@@ -25,6 +27,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <title>{metadata.title}</title>
         <meta name="description" content={metadata.description} />
+
+         {/* 카카오 주소 검색 API */}
+        <Script
+          src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"
+          strategy="beforeInteractive"
+        />
       </head>
 
       {/** body는 Server Component지만, 내부에 Client Component는 넣어도 됨 */}

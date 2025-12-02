@@ -15,9 +15,9 @@ export default function ClientRoot({ children }: { children: React.ReactNode }) 
       {/* 관리자 페이지가 아닐 때만 Header 출력 */}
       {!isAdmin && <Header />}
 
-      <main className={`flex-1 bg-gray-100 overflow-x-hidden ${!isAdmin ? "py-16" : ""}`}>
+      <div className={`flex-1 bg-gray-100 overflow-x-hidden ${!isAdmin ? "py-16" : ""}`}>
         <div className="mx-auto">{children}</div>
-      </main>
+      </div>
 
       {/* 관리자 페이지가 아닐 때만 Footer 출력 */}
       {!isAdmin && <Footer />}
