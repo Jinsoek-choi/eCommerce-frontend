@@ -1,19 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Input from "../../ui/Input";
-import Textarea from "../../ui/Textarea";
 import Button from "../../ui/Button";
 import ImageUpload from "../../ui/ImageUpload";
+import MultiImageUpload from "../../ui/MultiImageUpload";
+import { Plus, Trash2 } from "lucide-react";
+
+interface Option {
+  name: string;
+  stock: number;
+}
 
 interface Product {
   productName: string;
-  description?: string;
   mainImg?: string;
-  consumerPrice?: number;
-  sellPrice: number;
-  stock: number;
+  subImages?: string[];
+  categoryCode?: string;
+  options: Option[];
+}
+
+interface CategoryTree {
+  [bigCode: string]: {
+    title: string;
+    children: {
+      [midCode: string]: {
+        title: string;
+        children: {
+          [leafCode: string]: string;
+        };
+      };
+    };
+  };
 }
 
 export default function ProductCreatePage() {
@@ -22,18 +41,49 @@ export default function ProductCreatePage() {
 
   const [product, setProduct] = useState<Product>({
     productName: "",
-    description: "",
     mainImg: "",
-    consumerPrice: 0,
-    sellPrice: 0,
-    stock: 0,
+    subImages: [],
+    categoryCode: "",
+    options: [],
   });
 
+  const [categoryTree, setCategoryTree] = useState<CategoryTree | null>(null);
+  const [selectedBig, setSelectedBig] = useState<string>("");
+  const [selectedMid, setSelectedMid] = useState<string>("");
+
+  /** 카테고리 fetch */
+  useEffect(() => {
+    fetch(`${API_URL}/api/categories/tree`)
+      .then((res) => res.json())
+      .then((data) => setCategoryTree(data.tree))
+      .catch(console.error);
+  }, [API_URL]);
+
   const handleChange = (field: keyof Product, value: any) => {
-    setProduct({ ...product, [field]: value });
+    setProduct((prev) => ({ ...prev, [field]: value }));
   };
 
+  const addOption = () =>
+    setProduct((prev) => ({
+      ...prev,
+      options: [...prev.options, { name: "", stock: 0 }],
+    }));
+
+  const updateOption = (index: number, field: keyof Option, value: any) =>
+    setProduct((prev) => {
+      const newOptions = [...prev.options];
+      // newOptions[index][field] = value;
+      return { ...prev, options: newOptions };
+    });
+
+  const removeOption = (index: number) =>
+    setProduct((prev) => ({
+      ...prev,
+      options: prev.options.filter((_, i) => i !== index),
+    }));
+
   const handleSave = async () => {
+    if (!product.categoryCode) return alert("카테고리를 선택해주세요.");
     try {
       const res = await fetch(`${API_URL}/api/products`, {
         method: "POST",
@@ -41,7 +91,6 @@ export default function ProductCreatePage() {
         body: JSON.stringify(product),
       });
       if (!res.ok) throw new Error("저장 실패");
-
       alert("상품이 등록되었습니다.");
       router.push("/admin/productList");
     } catch (err) {
@@ -51,58 +100,166 @@ export default function ProductCreatePage() {
   };
 
   return (
-    <div className="py-10 px-4">
-      <div className="max-w-7xl mx-auto bg-white rounded-2xl shadow-lg p-10">
-        <h1 className="text-4xl font-extrabold mb-10 text-gray-800 pb-4 border-b border-gray-200">
+    <div className="py-10 px-4 min-h-screen">
+      <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-lg p-6 md:p-10">
+        <h1 className="text-3xl md:text-4xl font-extrabold mb-8 text-gray-800 pb-2 border-b border-gray-200">
           상품 등록
         </h1>
 
-        <div className="grid md:grid-cols-2 gap-10 mt-6">
-          {/* 왼쪽: 이미지 업로드 */}
-          <ImageUpload
-            image={product.mainImg}
-            onChange={(value) => handleChange("mainImg", value)}
-          />
+        <div className="flex flex-col md:flex-row gap-8 mt-6">
+          {/* 좌측: 이미지 업로드 */}
+          <div className="flex flex-col gap-6 md:w-1/2">
+            <p className="font-semibold">대표 이미지</p>
+            <ImageUpload
+              image={product.mainImg}
+              onChange={(val) => handleChange("mainImg", val)}
+            />
 
-          {/* 오른쪽: 상품 정보 */}
-          <div className="flex flex-col gap-6">
+            <p className="font-semibold mt-4">상세 이미지</p>
+            <MultiImageUpload
+              images={product.subImages || []}
+              onChange={(imgs) => handleChange("subImages", imgs)}
+            />
+          </div>
+
+          {/* 우측: 상품 정보 */}
+          <div className="flex flex-col gap-6 md:w-1/2">
             <Input
               label="상품명"
               value={product.productName}
               onChange={(e) => handleChange("productName", e.target.value)}
               placeholder="상품명을 입력하세요"
             />
-            <Textarea
-              label="상품 설명"
-              value={product.description || ""}
-              onChange={(e) => handleChange("description", e.target.value)}
-              placeholder="상품 설명을 입력하세요"
-              rows={6}
-            />
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Input
-                label="소비자가"
-                type="number"
-                value={product.consumerPrice || 0}
-                onChange={(e) => handleChange("consumerPrice", Number(e.target.value))}
-              />
-              <Input
-                label="판매가"
-                type="number"
-                value={product.sellPrice}
-                onChange={(e) => handleChange("sellPrice", Number(e.target.value))}
-              />
-              <Input
-                label="재고"
-                type="number"
-                value={product.stock}
-                onChange={(e) => handleChange("stock", Number(e.target.value))}
-              />
+            {/* 카테고리 선택 */}
+            {categoryTree ? (
+              <div className="flex flex-col gap-2">
+                <p className="font-semibold">카테고리 선택</p>
+
+                {/* 대분류 */}
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(categoryTree).map(([bigCode, bigNode]) => (
+                    <button
+                      key={bigCode}
+                      className={`px-3 py-1 rounded-full border text-sm transition cursor-pointer ${
+                        selectedBig === bigCode
+                          ? "bg-black text-white border-black"
+                          : "bg-gray-100 border-gray-200 hover:bg-gray-200"
+                      }`}
+                      onClick={() => {
+                        setSelectedBig(bigCode);
+                        setSelectedMid("");
+                        handleChange("categoryCode", "");
+                      }}
+                    >
+                      {bigNode.title}
+                    </button>
+                  ))}
+                </div>
+
+                {/* 중분류 */}
+                {selectedBig && (
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {Object.entries(categoryTree[selectedBig].children).map(
+                      ([midCode, midNode]) => (
+                        <button
+                          key={midCode}
+                          className={`px-3 py-1 rounded-full border text-sm transition cursor-pointer ${
+                            selectedMid === midCode
+                              ? "bg-black text-white border-black"
+                              : "bg-gray-100 border-gray-200 hover:bg-gray-200"
+                          }`}
+                          onClick={() => {
+                            setSelectedMid(midCode);
+                            handleChange("categoryCode", "");
+                          }}
+                        >
+                          {midNode.title}
+                        </button>
+                      )
+                    )}
+                  </div>
+                )}
+
+                {/* 소분류 */}
+                {selectedBig && selectedMid && (
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {Object.entries(
+                      categoryTree[selectedBig].children[selectedMid].children
+                    ).map(([leafCode, leafName]) => (
+                      <button
+                        key={leafCode}
+                        className={`px-3 py-1 rounded-full border text-sm transition cursor-pointer ${
+                          product.categoryCode === leafCode
+                            ? "bg-black text-white border-black"
+                            : "bg-gray-100 border-gray-200 hover:bg-gray-200"
+                        }`}
+                        onClick={() => handleChange("categoryCode", leafCode)}
+                      >
+                        {leafName}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {product.categoryCode && (
+                  <p className="text-sm text-gray-500 mt-1">
+                    선택된 카테고리: {product.categoryCode}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <p className="text-gray-500">카테고리 로드 중...</p>
+            )}
+
+            {/* 옵션 */}
+            <div className="flex flex-col gap-3 mt-4">
+              <div className="flex justify-between items-center">
+                <p className="font-semibold text-gray-700">옵션 추가</p>
+                <button
+                  type="button"
+                  onClick={addOption}
+                  className="w-6 h-6 flex mx-2 items-center justify-center bg-black text-white rounded-full cursor-pointer"
+                >
+                  <Plus size={14} />
+                </button>
+              </div>
+
+              {product.options.map((opt, idx) => (
+                <div
+                  key={idx}
+                  className="flex flex-col md:flex-row gap-2 items-end bg-gray-50 p-3 rounded-lg border border-gray-200"
+                >
+                  <Input
+                    label="옵션명"
+                    value={opt.name}
+                    onChange={(e) => updateOption(idx, "name", e.target.value)}
+                    placeholder="옵션명"
+                  />
+                  <Input
+                    label="재고"
+                    type="number"
+                    value={opt.stock}
+                    onChange={(e) =>
+                      updateOption(idx, "stock", Number(e.target.value))
+                    }
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeOption(idx)}
+                    className="p-2 text-red-500 hover:text-red-700 cursor-pointer"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              ))}
             </div>
 
-            {/* 저장 버튼: 이미지 영역 아래까지 확장 */}
-            <Button className="w-full mt-4 md:mt-6 col-span-2" onClick={handleSave}>
+            {/* 등록 버튼 */}
+            <Button
+              className="w-full mt-6 py-3 text-lg"
+              onClick={handleSave}
+            >
               상품 등록
             </Button>
           </div>
