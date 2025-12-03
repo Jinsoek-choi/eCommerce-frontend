@@ -161,7 +161,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (isAdmin || !user) return;
 
     axios
-      .delete(`${API_URL}/api/cart${cartId}`)
+      .delete(`${API_URL}/api/cart/${cartId}`)
       .then(() => debouncedLoadCart());
   }
 
