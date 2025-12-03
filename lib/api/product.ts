@@ -73,6 +73,3 @@ export async function toggleLike(productId: number) {
   if (!res.ok) throw new Error("Like request failed");
   return res.json();
 }
-
-
-

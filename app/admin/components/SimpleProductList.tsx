@@ -1,5 +1,5 @@
 "use client";
-
+// 관리자 메인 페이지에서 간략한 상품 리스트
 export default function SimpleProductList({
   products,
   loading,

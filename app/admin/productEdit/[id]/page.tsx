@@ -6,6 +6,7 @@ import Input from "../../ui/Input";
 import Textarea from "../../ui/Textarea";
 import Button from "../../ui/Button";
 import ImageUpload from "../../ui/ImageUpload";
+import Link from "next/link"; 
 
 // 상품 옵션을 위한 인터페이스 정의
 interface ProductOption {
@@ -113,6 +114,7 @@ export default function ProductEditPage() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(product),
+
       });
       if (!res.ok) throw new Error("저장 실패");
 

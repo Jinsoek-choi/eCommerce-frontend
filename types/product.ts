@@ -9,7 +9,7 @@
  */
 export interface Option {
   optionId: number;
-  value: string;  // 옵션 이름(문구)
+  optionValue: string;  
 }
 
 /**
@@ -18,9 +18,13 @@ export interface Option {
  * - Option을 기반으로 count(수량)만 추가됨
  * - UI에서 옵션의 수량 증가/감소/삭제할 때 사용
  */
+
+
 export interface SelectedOption extends Option {
-  count: number;
+  optionValue: string;
+  count: number;  // 수량만 추가
 }
+
 
 /**
  * Product (상품 전체 타입)

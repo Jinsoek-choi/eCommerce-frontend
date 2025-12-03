@@ -1,4 +1,3 @@
-// context/CartContext.tsx
 "use client";
 
 import { useUser } from "./UserContext";
@@ -15,22 +14,15 @@ import axios from "@/context/axiosConfig";
 
 axios.defaults.withCredentials = true;
 
+/** --------------------------------------
+ * Debounce Utility (브라우저 환경 호환)
+ * -------------------------------------- */
 function debounce(callback: (...args: any[]) => void, delay: number) {
   let timer: ReturnType<typeof setTimeout>;
   return (...args: any[]) => {
     clearTimeout(timer);
     timer = setTimeout(() => callback(...args), delay);
   };
-}
-
-interface CartItemOption {
-  optionId?: number;
-  optionType?: string;
-  optionTitle?: string | null;
-  optionValue?: string | null;
-  colorCode?: string | null;
-  sellPrice?: number;
-  stock?: number;
 }
 
 interface CartItem {
@@ -42,23 +34,25 @@ interface CartItem {
   price: number;
   stock: number;
   soldOut: boolean;
-  option?: CartItemOption | null;
+  option?: {
+    optionValue: string | null; 
+    optionType: string;
+    optionTitle: string | null;
+  } | null;
 }
+
 
 interface CartContextType {
   cart: CartItem[];
   initialLoading: boolean;
   loadCart: () => void;
-  addToCart: (
-    productId: number,
-    optionValue: string | null,
-    quantity: number
-  ) => void;
+  addToCart: (productId: number, optionValue: string | null, quantity: number) => void;
   updateQuantity: (cartId: number, quantity: number) => void;
-  changeOption: (cartId: number, newOptionValue: string) => void;
+  changeOption: (cartId: number, newOptionValue: string) => void; 
   deleteItem: (cartId: number) => void;
   clearCart: () => void;
 }
+
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
@@ -69,8 +63,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const isAdmin = user?.role?.toUpperCase() === "ADMIN";
   const [initialLoading, setInitialLoading] = useState(true);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL as string;
+  const API_URL = process.env.NEXT_PUBLIC_API_URL; 
 
+
+  /** --------------------------------------
+   * loadCart — 서버에서 장바구니 불러오기
+   * 조건 적고 호출 최소화 (실무 패턴)
+   * -------------------------------------- */
   const loadCart = useCallback(() => {
     if (!user || !user.id || isAdmin) {
       setCart([]);
@@ -82,100 +81,101 @@ export function CartProvider({ children }: { children: ReactNode }) {
       .get(`${API_URL}/api/cart`)
       .then((res) => setCart(res.data.items || []))
       .finally(() => {
-        setInitialLoading(false);
+        setInitialLoading(false);   // ← 페이지 첫 로딩만 종료
       });
-  }, [user, isAdmin, API_URL]);
+  }, [user, isAdmin]);
 
-  const debouncedLoadCart = useMemo(
-    () => debounce(loadCart, 250),
-    [loadCart]
-  );
 
-  /** ✅ A안 핵심: optionValue 문자열/ null */
-  function addToCart(
-    productId: number,
-    optionValue: string | null,
-    quantity: number
-  ) {
+  /** --------------------------------------
+   * Debounced loadCart — 연타 대비 서버 요청 줄이기
+   * -------------------------------------- */
+  const debouncedLoadCart = useMemo(() => debounce(loadCart, 250), [loadCart]);
+
+  /** --------------------------------------
+   * Add to Cart
+   * - 서버 요청 후 debouncedLoadCart만 호출
+   * -------------------------------------- */
+  function addToCart(productId: number, optionValue: string | null, quantity: number) {
+    console.log("addToCart payload:", { productId, optionValue, quantity });
+
     if (isAdmin || !user) return;
 
-    const safeOptionValue = optionValue ?? null;
-
     axios
-      .post(`${API_URL}/api/cart`, {
-        productId,
-        optionValue: safeOptionValue,
-        quantity,
-      })
+      .post(`/api/cart`, { productId, optionValue, quantity })  // optionId 대신 optionValue 사용
       .then(() => debouncedLoadCart())
-      .catch((err) => {
-        console.error("장바구니 담기 실패:", err);
-        alert("장바구니 담기 중 오류가 발생했습니다.");
-      });
+      .catch((err) => console.error("장바구니 담기 실패:", err));
   }
 
+
+  /** --------------------------------------
+   * Update Quantity (optimis) UI + debounce)
+   * -------------------------------------- */
   function updateQuantity(cartId: number, quantity: number) {
     if (isAdmin || !user) return;
 
+    // UI 먼저 수정
     setCart((prev) =>
-      prev.map((item) =>
-        item.cartId === cartId ? { ...item, quantity } : item
-      )
+      prev.map((item) => (item.cartId === cartId ? { ...item, quantity } : item))
     );
 
+    // 서버 요청은 디바운스 적용
     axios
       .put(`${API_URL}/api/cart/quantity`, { cartId, quantity })
-      .then(() => debouncedLoadCart())
-      .catch((err) => {
-        console.error("수량 변경 실패:", err);
-        loadCart();
-      });
+      .then(() => debouncedLoadCart());
   }
 
+  /** --------------------------------------
+   * Change Option (Optimistic UI + debounce)
+   * -------------------------------------- */
   function changeOption(cartId: number, newOptionValue: string) {
     if (isAdmin || !user) return;
 
-    setCart((prev) =>
-      prev.map((item) => {
-        if (item.cartId !== cartId) return item;
-        return {
-          ...item,
-          option: {
-            ...(item.option || {}),
-            optionValue: newOptionValue,
-          },
-        };
-      })
-    );
+    // // Optimistic UI 업데이트
+    // setCart((prev) =>
+    //   prev.map((item) => {
+    //     if (item.cartId !== cartId) return item;
 
+    //     return {
+    //       ...item,
+    //       option: item.option
+    //         ? { ...item.option, optionId: newOptionId }
+    //         : { optionId: newOptionId },
+    //     };
+    //   })
+    // );
+
+    // 서버 요청 (디바운스 적용)
     axios
       .put(`${API_URL}/api/cart/option`, { cartId, newOptionValue })
       .then(() => debouncedLoadCart())
       .catch((err) => {
         console.error("옵션 변경 실패:", err);
-        loadCart();
+        loadCart();  // 실패시 새로 고침
       });
   }
 
+  /** --------------------------------------
+   * Delete Item
+   * -------------------------------------- */
   function deleteItem(cartId: number) {
     if (isAdmin || !user) return;
 
     axios
       .delete(`${API_URL}/api/cart/${cartId}`)
-      .then(() => debouncedLoadCart())
-      .catch((err) => {
-        console.error("장바구니 삭제 실패:", err);
-      });
+      .then(() => debouncedLoadCart());
   }
 
+  /** 장바구니 비우기 */
   function clearCart() {
     setCart([]);
   }
 
+  /** --------------------------------------
+   * 로그인 상태 변화 감지하여 장바구니 로딩
+   * -------------------------------------- */
   useEffect(() => {
     if (!user || isAdmin) {
       setCart([]);
-      setInitialLoading(false);
       return;
     }
     loadCart();
@@ -185,7 +185,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     <CartContext.Provider
       value={{
         cart,
-        initialLoading,
+        initialLoading,  
         loadCart,
         addToCart,
         updateQuantity,

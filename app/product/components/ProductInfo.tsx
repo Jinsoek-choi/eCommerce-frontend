@@ -19,14 +19,11 @@ import { Heart, Plus, Minus, X } from "lucide-react";
  * ※ 모든 비즈니스 로직은 useProductInfoLogic 훅으로 분리됨
  */
 
-
 export default function ProductInfo({ product }: { product: Product }) {
   const router = useRouter();
   const { user } = useUser();
   const { addToCart } = useCart();
   const { toggleWishlist } = useWishlist();
-
-  console.log("⭐ product.options =", product.options);
 
   // 상품 상세에 필요한 로직을 모두 커스텀 훅에서 가져옴
   const {
@@ -112,16 +109,14 @@ export default function ProductInfo({ product }: { product: Product }) {
       {product.isOption && product.options?.length && (
         <div className="mb-6 relative w-full" ref={dropdownRef}>
           <label className="block text-gray-700 mb-2 font-medium">옵션 선택</label>
-
           <button
             onClick={() => setDropdownOpen((prev) => !prev)}
             className="w-full border border-gray-300 rounded-lg p-2 text-left bg-white hover:ring-2 hover:ring-black transition cursor-pointer"
           >
             {selectedOptions.length === 0
               ? "옵션 선택"
-              : selectedOptions.map((o) => o.value).join(", ")}
+              : selectedOptions.map((o) => o.optionValue).join(", ")}
           </button>
-
           {dropdownOpen && (
             <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
               {product.options.map((opt) => (
@@ -130,23 +125,19 @@ export default function ProductInfo({ product }: { product: Product }) {
                   onClick={() =>
                     handleSelectOption({
                       optionId: opt.optionId,
-                      value: opt.value,          // ✅ Option.value 사용
+                      optionValue: opt.optionValue,
                     })
                   }
-                  className={`p-2 hover:bg-gray-100 cursor-pointer ${
-                    selectedOptions.some((o) => o.optionId === opt.optionId)
-                      ? "bg-gray-200"
-                      : ""
-                  }`}
+                  className={`p-2 hover:bg-gray-100 cursor-pointer ${selectedOptions.some((o) => o.optionId === opt.optionId) ? "bg-gray-200" : ""}`}
                 >
-                  {opt.value}                     {/* ✅ 화면에도 value */}
+                  {opt.optionValue}  {/* optionValue를 그대로 표시 */}
                 </li>
               ))}
             </ul>
+
           )}
         </div>
       )}
-
 
       {/* ----------------------------------------------------
           선택된 옵션 목록
@@ -161,7 +152,7 @@ export default function ProductInfo({ product }: { product: Product }) {
           >
             <div className="flex-1">
               {/* 옵션명 */}
-              <p className="font-medium text-black">{item.value}</p>
+              <p className="font-medium text-black">{item.optionValue}</p>
               
               {/* 수량 조절 */}
               <div className="flex items-center gap-3 mt-2">

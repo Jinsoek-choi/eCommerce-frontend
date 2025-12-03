@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
-import Input from "../../ui/Input";
 
 interface Product {
   productId: number;

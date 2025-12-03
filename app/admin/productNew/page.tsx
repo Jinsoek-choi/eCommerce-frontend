@@ -9,6 +9,7 @@ import ImageUpload from "../../ui/ImageUpload";
 
 // 상품 옵션을 위한 인터페이스 정의
 interface ProductOption {
+  optionId?: number;
   optionTitle: string;  // 옵션 제목 (예: 색상, 사이즈)
   optionValue: string;  // 옵션 값 (예: Red, Blue, S, M, L)
   sellPrice: number;    // 옵션 가격
@@ -17,6 +18,7 @@ interface ProductOption {
 }
 
 interface Product {
+  productId?: number;  // 신규 추가 시 ID는 필요 없으므로, 선택적입니다.
   productName: string;
   description?: string;
   mainImg?: string;
@@ -36,6 +38,7 @@ export default function ProductNewPage() {
 
   // 상품 정보를 관리할 상태 정의
   const [product, setProduct] = useState<Product>({
+    productId: 0,  // 신규 상품은 0으로 초기화
     productName: "",
     description: "",
     mainImg: "",

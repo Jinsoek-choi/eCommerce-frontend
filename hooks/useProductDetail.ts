@@ -16,29 +16,46 @@ import { Product, Option } from "@/types/product";
 
 export function useProductDetail(id: number) {
   // 상품 상세 데이터를 저장하는 상태
-  const [product, setProduct] = useState<Product | null>(null);
+  const [product, setProduct] = useState<Product>(null as any);
+  const [loading, setLoading] = useState<boolean>(true); //로딩 상태
+  const [error, setError] = useState<string | null>(null);  // 에러 상태
 
   useEffect(() => {
-    // 1) 상품 상세 API 호출
-    fetchProductDetail(id).then((data) => {
-      if (!data) return setProduct(null);
+    const fetchDetail = async () => {
+      try {
+        setLoading(true);  // 로딩 시작
+        const data = await fetchProductDetail(id);
 
-      // 2) 옵션 데이터 구조 변환
-      // 백엔드에서는 { optionId, optionValue } 형태로 오지만
-      // 프론트에서는 Option { optionId, value } 형태로 사용하기 때문에 변환해줌.
-      const mappedProduct: Product = {
-        ...data,
-        options: data.options?.map((opt: any) => ({
-          optionId: opt.optionId,
-          value: opt.optionValue,   // value 기반으로 통일
-        })),
-      };
+        if (!data) {
+          setProduct(null as any);
+          setError("상품을 불러오는 데 실패했습니다.");
+          return;
+        }
 
-      // 3) 상태 업데이트
-      setProduct(mappedProduct);
-    });
+        // 백엔드에서 { optionId, optionValue } 형태로 옴
+        const mappedProduct: Product = {
+          ...data,  // 기존 데이터 복사
+          options: data.options?.map((opt: any) => ({
+            optionId: opt.optionId,
+            optionValue: opt.optionValue,  
+          })),
+        };
+
+        // 3) 상태 업데이트
+        setProduct(mappedProduct);
+        setError(null);  // 에러 초기화
+      } catch (err) {
+        console.error("상품 상세 정보 불러오기 오류:", err);
+        setError("상품 정보를 불러오는 데 오류가 발생했습니다.");
+        setProduct(null as any);  // 오류 발생 시 null로 상태 업데이트
+      } finally {
+        setLoading(false);  // 로딩 완료
+      }
+    };
+
+    fetchDetail();
   }, [id]);  // id가 변경되면 다시 상세 조회
 
-  // 커스텀 훅의 반환값: 정제된 상품 데이터
-  return product;
+  // 커스텀 훅의 반환값: 정제된 상품 데이터, 로딩 상태, 에러 상태
+  return product; //{ product, loading, error };
 }

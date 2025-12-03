@@ -30,13 +30,8 @@ export function useProductInfoLogic(
   /** ----------------------------------------
    * 옵션 관련 상태
    * ---------------------------------------- */
-  // 선택된 옵션 리스트
   const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
-
-  // 옵션 드롭다운 DOM reference
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // 드롭다운 ON/OFF 상태
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   /** ----------------------------------------
@@ -73,7 +68,7 @@ export function useProductInfoLogic(
       setLikeLoading(false);
     }
   };
-    
+
   /**
    * 옵션 선택
    * - 이미 선택한 옵션이면 추가되지 않도록 체크
@@ -84,7 +79,10 @@ export function useProductInfoLogic(
     if (selectedOptions.some((o) => o.optionId === opt.optionId)) return;
 
     // 선택 옵션 리스트에 추가
-    setSelectedOptions((prev) => [...prev, { ...opt, count: 1 }]);
+    setSelectedOptions((prev) => [
+      ...prev,
+      { ...opt, count: 1 } // 'value'와 'count'를 추가
+    ]);
 
     // 선택 후 드롭다운 닫기
     setDropdownOpen(false);
@@ -106,24 +104,15 @@ export function useProductInfoLogic(
 
     try {
       if (product.isOption) {
-        // ✅ 옵션 상품: optionValue에는 "문자열 옵션명"을 보낸다
         for (const opt of selectedOptions) {
-          await addToCart(
-            product.productId,
-            opt.value,      // 🔥 여기! opt.optionId 말고 opt.value
-            opt.count
-          );
+          // CartContext의 addToCart 호출
+          await addToCart(product.productId, opt.optionValue, opt.count);  // 수정: optionValue로 처리
         }
       } else {
-        // ✅ 단일 상품: optionValue = null
         await addToCart(product.productId, null, 1);
       }
 
-      if (
-        window.confirm(
-          "장바구니에 담았습니다.\n장바구니 페이지로 이동할까요?"
-        )
-      ) {
+      if (window.confirm("장바구니에 담았습니다.\n장바구니 페이지로 이동할까요?")) {
         router.push("/mypage/cart");
       }
     } catch (err) {
@@ -157,6 +146,26 @@ export function useProductInfoLogic(
   };
 
   /**
+   * 수량 변경
+   * - 수량 증가
+   * - 수량 감소 (최소 1개로 설정)
+   */
+  const handleQuantityChange = (optionId: number, increment: boolean) => {
+    setSelectedOptions((prev) =>
+      prev.map((option) =>
+        option.optionId === optionId
+          ? {
+              ...option,
+              count: increment
+                ? option.count + 1
+                : Math.max(1, option.count - 1), // 수량 최소값 1
+            }
+          : option
+      )
+    );
+  };
+
+  /**
    * 옵션 드롭다운 외부 클릭 시 자동으로 닫히도록 처리
    */
   useEffect(() => {
@@ -177,6 +186,7 @@ export function useProductInfoLogic(
     setDropdownOpen,
     dropdownRef,
     handleSelectOption,
+    handleQuantityChange,  // 수량 변경 함수 추가
 
     // 좋아요 관련
     // isLiked,
@@ -193,3 +203,4 @@ export function useProductInfoLogic(
     handleBuyNow,
   };
 }
+
