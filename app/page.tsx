@@ -126,8 +126,8 @@ export default function Page() {
               setCurrentPage(1);
             }}
             className={`pb-1 text-sm cursor-pointer ${!selectedMain
-                ? "text-black font-semibold border-b-2 border-black"
-                : "text-gray-500 hover:text-gray-800"
+              ? "text-black font-semibold border-b-2 border-black"
+              : "text-gray-500 hover:text-gray-800"
               }`}
           >
             전체보기
@@ -142,8 +142,8 @@ export default function Page() {
                 setCurrentPage(1);
               }}
               className={`pb-1 text-sm cursor-pointer ${selectedMain === cat.code
-                  ? "text-black font-semibold border-b-2 border-black"
-                  : "text-gray-500 hover:text-gray-800"
+                ? "text-black font-semibold border-b-2 border-black"
+                : "text-gray-500 hover:text-gray-800"
                 }`}
             >
               {cat.title}
@@ -196,7 +196,7 @@ export default function Page() {
                   />
                 </div>
 
-                <p className="text-gray-800 text-center text-base font-medium mt-3 mb-1">
+                <p className="text-gray-800 text-center text-base font-medium mt-3 mb-1 line-clamp-2 min-h-[40px]">
                   {truncate(p.productName)}
                 </p>
 
@@ -237,8 +237,8 @@ export default function Page() {
               key={page}
               onClick={() => setCurrentPage(page)}
               className={`px-3 py-1 border rounded transition cursor-pointer ${currentPage === page
-                  ? "bg-black text-white border-black"
-                  : "hover:bg-gray-100"
+                ? "bg-black text-white border-black"
+                : "hover:bg-gray-100"
                 }`}
             >
               {page}

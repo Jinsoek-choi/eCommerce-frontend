@@ -12,7 +12,7 @@ import { Heart, Plus, Minus, X } from "lucide-react";
  *
  * - 상품명/가격 표시
  * - 카테고리 경로 표시
- * - 옵션 선택 UI 처리
+ * - 옵션 선택 UI 처리 (드롭다운 + 색상 팔레트)
  * - 좋아요 버튼
  * - 장바구니 / 구매하기 버튼
  *
@@ -25,7 +25,6 @@ export default function ProductInfo({ product }: { product: Product }) {
   const { addToCart } = useCart();
   const { toggleWishlist } = useWishlist();
 
-  // 상품 상세에 필요한 로직을 모두 커스텀 훅에서 가져옴
   const {
     selectedOptions,
     setSelectedOptions,
@@ -33,9 +32,6 @@ export default function ProductInfo({ product }: { product: Product }) {
     setDropdownOpen,
     dropdownRef,
     handleSelectOption,
-    // isLiked,
-    // likesCount,
-    // likeLoading,
     liked,
     likeCount,
     likeLoading,
@@ -44,33 +40,18 @@ export default function ProductInfo({ product }: { product: Product }) {
     handleBuyNow,
   } = useProductInfoLogic(product, user, addToCart, router, toggleWishlist);
 
+  // 색상 옵션 여부
+  const hasColorOptions = product.options?.some(opt => !!opt.colorCode);
+
   return (
     <div className="flex flex-col items-center md:items-start text-center md:text-left space-y-6">
 
       {/* 카테고리 */}
-      {/* {product.categoryPath && (
-        <div className="text-sm text-gray-500 mb-2 flex items-center gap-2">
-          {product.categoryPath.split(">").map((cat, idx) => (
-            <span key={idx} className="flex items-center gap-2">
-              <span className="text-gray-600">{cat.trim()}</span>
-              {idx < product.categoryPath.split(">").length - 1 && (
-                <span className="text-gray-400">/</span>
-              )}
-            </span>
-          ))}
-        </div>
-      )} */}
-
-      {/* ----------------------------------------------------
-          카테고리 경로 표시
-          ex) 남성의류 > 상의 > 후드티
-      ---------------------------------------------------- */}
       {product.categoryPath && (
         <div className="text-sm text-gray-500 mb-2 flex items-center gap-2">
           {product.categoryPath.split(">").map((cat, idx, arr) => (
             <span key={idx} className="flex items-center gap-2">
               <span className="text-gray-600">{cat.trim()}</span>
-              {/* 마지막 항목 뒤에는 "/" 표시 안 함 */}
               {idx < arr.length - 1 && (
                 <span className="text-gray-400">/</span>
               )}
@@ -82,14 +63,14 @@ export default function ProductInfo({ product }: { product: Product }) {
       {/* 상품명 */}
       <h1 className="text-3xl font-bold text-black">{product.productName}</h1>
 
-      {/* 가격 정보 (할인율, 소비자가, 판매가) */}
+      {/* 가격 정보 */}
       <div className="mb-6 text-center md:text-left space-y-1">
         {product.consumerPrice && product.consumerPrice > product.sellPrice && (
           <span className="text-red-500 text-lg font-semibold">
             {Math.round(
               ((product.consumerPrice - product.sellPrice) / product.consumerPrice) * 100
-            )}
-            % 할인
+            )}%
+            할인
           </span>
         )}
         {product.consumerPrice && (
@@ -101,66 +82,107 @@ export default function ProductInfo({ product }: { product: Product }) {
         <p className="text-gray-600 text-sm">재고: {product.stock}개</p>
       </div>
 
-      {/* ----------------------------------------------------
-          옵션 선택 영역
-          - 옵션 드롭다운
-          - 옵션 선택 시 selectedOptions에 추가됨
-      ---------------------------------------------------- */}
+      {/* 옵션 선택 영역 */}
       {product.isOption && product.options?.length && (
         <div className="mb-6 relative w-full" ref={dropdownRef}>
           <label className="block text-gray-700 mb-2 font-medium">옵션 선택</label>
-          <button
-            onClick={() => setDropdownOpen((prev) => !prev)}
-            className="w-full border border-gray-300 rounded-lg p-2 text-left bg-white hover:ring-2 hover:ring-black transition cursor-pointer"
-          >
-            {selectedOptions.length === 0
-              ? "옵션 선택"
-              : selectedOptions.map((o) => o.optionValue).join(", ")}
-          </button>
-          {dropdownOpen && (
-            <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
-              {product.options.map((opt) => (
-                <li
-                  key={opt.optionId}
-                  onClick={() =>
-                    handleSelectOption({
-                      optionId: opt.optionId,
-                      optionValue: opt.optionValue,
-                    })
-                  }
-                  className={`p-2 hover:bg-gray-100 cursor-pointer ${selectedOptions.some((o) => o.optionId === opt.optionId) ? "bg-gray-200" : ""}`}
-                >
-                  {opt.optionValue}  {/* optionValue를 그대로 표시 */}
-                </li>
-              ))}
-            </ul>
 
+          {/* 색상 팔레트 */}
+          {hasColorOptions ? (
+            <div className="flex gap-2 flex-wrap">
+              {product.options.map(opt => {
+                const isSelected = selectedOptions.some(o => o.optionId === opt.optionId);
+                const isSoldOut = opt.stock === 0;
+                return (
+                  <button
+                    key={opt.optionId}
+                    onClick={() =>
+                      !isSoldOut &&
+                      handleSelectOption({
+                        optionId: opt.optionId,
+                        optionValue: opt.optionValue,
+                        stock: opt.stock,
+                        colorCode: opt.colorCode,
+                      })
+                    }
+                    className={`w-10 h-10 rounded-full border-2 transition flex items-center justify-center ${
+                      isSelected ? "border-black" : "border-gray-200"
+                    } ${isSoldOut ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                    style={{ backgroundColor: opt.colorCode }}
+                    title={`${opt.optionValue} ${isSoldOut ? "(품절)" : `(${opt.stock}개)`}`}
+                  >
+                    {isSelected && <div className="w-3 h-3 bg-white rounded-full"></div>}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            // 기존 드롭다운
+            <>
+              <button
+                onClick={() => setDropdownOpen((prev) => !prev)}
+                className="w-full border border-gray-300 rounded-lg p-2 text-left bg-white hover:ring-2 hover:ring-black transition cursor-pointer"
+              >
+                {selectedOptions.length === 0
+                  ? "옵션 선택"
+                  : selectedOptions.map((o) => o.optionValue).join(", ")}
+              </button>
+              {dropdownOpen && (
+                <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                  {product.options.map(opt => {
+                    const isSelected = selectedOptions.some(o => o.optionId === opt.optionId);
+                    const isSoldOut = opt.stock === 0;
+                    return (
+                      <li
+                        key={opt.optionId}
+                        onClick={() =>
+                          !isSoldOut &&
+                          handleSelectOption({
+                            optionId: opt.optionId,
+                            optionValue: opt.optionValue,
+                            stock: opt.stock,
+                            colorCode: opt.colorCode,
+                          })
+                        }
+                        className={`p-2 flex justify-between items-center hover:bg-gray-100 cursor-pointer ${
+                          isSelected ? "bg-gray-200" : ""
+                        } ${isSoldOut ? "opacity-50 cursor-not-allowed" : ""}`}
+                      >
+                        <span>{opt.optionValue}</span>
+                        {isSoldOut ? (
+                          <span className="text-red-500 text-xs font-semibold">품절</span>
+                        ) : (
+                          <span className="text-gray-400 text-xs">{opt.stock}개</span>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </>
           )}
         </div>
       )}
 
-      {/* ----------------------------------------------------
-          선택된 옵션 목록
-          - 수량 + / -
-          - 옵션 제거
-      ---------------------------------------------------- */}
+      {/* 선택된 옵션 목록 */}
       <div className="flex flex-col gap-4 mb-6 w-full">
-        {selectedOptions.map((item) => (
+        {selectedOptions.map(item => (
           <div
             key={item.optionId}
             className="border p-4 rounded-xl shadow flex justify-between items-center w-full bg-white"
           >
             <div className="flex-1">
-              {/* 옵션명 */}
               <p className="font-medium text-black">{item.optionValue}</p>
-              
+
               {/* 수량 조절 */}
               <div className="flex items-center gap-3 mt-2">
                 <button
                   onClick={() =>
-                    setSelectedOptions((prev) =>
-                      prev.map((p) =>
-                        p.optionId === item.optionId ? { ...p, count: Math.max(1, p.count - 1) } : p
+                    setSelectedOptions(prev =>
+                      prev.map(p =>
+                        p.optionId === item.optionId
+                          ? { ...p, count: Math.max(1, p.count - 1) }
+                          : p
                       )
                     )
                   }
@@ -171,9 +193,11 @@ export default function ProductInfo({ product }: { product: Product }) {
                 <span className="font-semibold text-black">{item.count}</span>
                 <button
                   onClick={() =>
-                    setSelectedOptions((prev) =>
-                      prev.map((p) =>
-                        p.optionId === item.optionId ? { ...p, count: p.count + 1 } : p
+                    setSelectedOptions(prev =>
+                      prev.map(p =>
+                        p.optionId === item.optionId
+                          ? { ...p, count: p.count + 1 }
+                          : p
                       )
                     )
                   }
@@ -184,9 +208,8 @@ export default function ProductInfo({ product }: { product: Product }) {
               </div>
             </div>
 
-            {/* 옵션 삭제 */}
             <button
-              onClick={() => setSelectedOptions((prev) => prev.filter((p) => p.optionId !== item.optionId))}
+              onClick={() => setSelectedOptions(prev => prev.filter(p => p.optionId !== item.optionId))}
               className="text-gray-400 hover:text-black transition ml-4"
             >
               <X size={20} />
@@ -195,12 +218,10 @@ export default function ProductInfo({ product }: { product: Product }) {
         ))}
       </div>
 
-      {/* ----------------------------------------------------
-          좋아요 버튼 + 장바구니 + 구매하기
-      ---------------------------------------------------- */}
+      {/* 좋아요 + 장바구니 + 구매하기 */}
       <div className="flex flex-col md:flex-row items-center gap-4 w-full">
-        {/* 좋아요 */}
-        <button onClick={handleLike}
+        <button
+          onClick={handleLike}
           className={`flex items-center gap-2 p-2 border rounded-lg transition-all w-full md:w-auto ${
             liked ? "bg-rose-50 border-rose-300" : "bg-white border-gray-300"
           }`}
@@ -213,7 +234,6 @@ export default function ProductInfo({ product }: { product: Product }) {
           </span>
         </button>
 
-        {/* 장바구니 */}
         <button
           onClick={handleAddToCart}
           className="flex-1 w-full bg-black text-white py-3 rounded-xl hover:bg-gray-900 transition cursor-pointer"
@@ -221,7 +241,6 @@ export default function ProductInfo({ product }: { product: Product }) {
           장바구니
         </button>
 
-        {/* 구매하기 */}
         <button
           onClick={handleBuyNow}
           className="flex-1 w-full bg-black text-white py-3 rounded-xl hover:bg-gray-900 transition cursor-pointer"

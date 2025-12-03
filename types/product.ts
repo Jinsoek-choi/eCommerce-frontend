@@ -9,7 +9,9 @@
  */
 export interface Option {
   optionId: number;
-  optionValue: string;  
+  optionValue: string;
+  stock: number;
+  colorCode: string;
 }
 
 /**
