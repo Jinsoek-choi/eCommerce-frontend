@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
+import { toFullUrlCDN } from "@/lib/utils/toFullUrlCDN";
 
 interface CheckoutOption {
   optionId: number;
@@ -13,9 +14,12 @@ interface CheckoutOption {
 interface CheckoutData {
   productId: number;
   productName: string;
-  mainImg?: string;
+  mainImg: string;
   sellPrice: number;
-  options: CheckoutOption[];
+  options: {
+    value: string;
+    count: number;
+  }[];
 }
 
 interface Address {
@@ -46,7 +50,7 @@ export default function CheckoutPage() {
   });
 
   // -----------------------------
-  // 📌 전화번호 자동 하이픈 적용 함수
+  // 전화번호 자동 하이픈 적용 함수
   // -----------------------------
   const formatPhoneNumber = (value: string) => {
     const digits = value.replace(/\D/g, ""); // 숫자만 남기기
@@ -57,7 +61,7 @@ export default function CheckoutPage() {
   };
 
   // -----------------------------
-  // 📌 PortOne 카드 결제 진행
+  // PortOne 카드 결제 진행
   // -----------------------------
   const handleCardPayment = async () => {
     if (!selectedAddress) {
@@ -134,7 +138,7 @@ export default function CheckoutPage() {
   };
 
   // -----------------------------
-  // 📌 배송지 목록 불러오기 (백엔드)
+  // 배송지 목록 불러오기 (백엔드)
   // -----------------------------
   useEffect(() => {
     loadAddresses();
@@ -160,7 +164,7 @@ export default function CheckoutPage() {
   };
 
   // -----------------------------
-  // 📌 바로 구매 데이터 로딩
+  // 바로 구매 데이터 로딩
   // -----------------------------
   useEffect(() => {
     const checkoutSaved = sessionStorage.getItem("checkoutData");
@@ -169,31 +173,56 @@ export default function CheckoutPage() {
     }
   }, []);
 
-  // -----------------------------
-  // 📌 장바구니 + 바로구매 병합
-  // -----------------------------
-  const itemsToShow: (CheckoutData & { quantity?: number })[] = [];
+// -----------------------------
+// 📌 장바구니 결제 vs 바로구매 분기
+// -----------------------------
+// directData = "바로구매(handleBuyNow)"로 넘어온 단건 결제 데이터
+// cart = 장바구니 데이터
+//
+// 규칙:
+// - directData가 있으면 → 바로구매 모드 → 장바구니를 완전히 무시한다
+// - directData가 없으면 → 장바구니 결제 모드
+//
+// 이유:
+//   바로구매는 단일 상품만 결제해야 하므로,
+//   장바구니 상품이 섞여 들어가면 안 된다.
+//   즉, 바로구매 모드일 때는 cart를 절대 합치면 안 됨.
+  let itemsToShow: (CheckoutData & { quantity?: number })[] = [];
 
-  if (directData) itemsToShow.push(directData);
-
-  if (cart && cart.length > 0) {
-    itemsToShow.push(
-      ...cart.map((c) => ({
-        productId: c.productId,
-        productName: c.productName,
-        mainImg: c.thumbnail,
-        sellPrice: c.price,
-        options: c.option
-          ? [
-            {
-              optionId: c.option.optionId,
-              value: `${c.option.optionTitle} ${c.option.optionValue}`,
-              count: c.quantity,
-            },
-          ]
-          : [{ optionId: 0, value: "기본", count: c.quantity }],
-      }))
-    );
+  if (directData) {
+    // 바로 구매
+    // - 상품 상세페이지에서 '구매하기'를 눌러 들어온 경우
+    // - sessionStorage 에 저장된 단일 상품 정보만 표시
+    // - 장바구니 상품은 완전히 무시
+    itemsToShow = [directData];
+    
+  } else {
+    // 장바구니 결제 모드
+    // - directData가 없으면 장바구니에서 결제 버튼을 눌러 들어온 경우
+    // - cart 배열을 기준으로 결제 상품 목록 구성
+    if (cart && cart.length > 0) {
+      itemsToShow.push(
+        ...cart.map((c) => ({
+          productId: c.productId,
+          productName: c.productName,
+          mainImg: c.thumbnail,
+          sellPrice: c.price,
+          options: c.optionValue
+                ? [
+                    {
+                      value: `${c.optionTitle ?? ""} ${c.optionValue}`,
+                      count: c.quantity,
+                    }
+                  ]
+                : [
+                    {
+                      value: "기본",
+                      count: c.quantity,
+                    }
+                  ],
+        }))
+      );
+    }
   }
 
   const totalPrice = itemsToShow.reduce(
@@ -207,7 +236,7 @@ export default function CheckoutPage() {
   );
 
   // -----------------------------
-  // 📌 신규 배송지 추가 (백엔드)
+  // 신규 배송지 추가 (백엔드)
   // -----------------------------
   const addNewAddress = async () => {
     if (!newAddress.name || !newAddress.phone || !newAddress.address) {
@@ -243,7 +272,7 @@ export default function CheckoutPage() {
   };
 
   // -----------------------------
-  // 📌 주문 생성 요청
+  // 주문 생성 요청
   // -----------------------------
   const handleOrder = async () => {
     if (!selectedAddress) {
@@ -293,7 +322,7 @@ export default function CheckoutPage() {
     <div className="min-h-screen py-12 px-4">
       <div className="max-w-4xl mx-auto space-y-8">
         {/* ----------------------------- */}
-        {/* 📌 배송지 목록 */}
+        {/* 배송지 목록 */}
         {/* ----------------------------- */}
         <div className="bg-white rounded-2xl shadow p-6 space-y-4">
           <h2 className="text-xl font-semibold text-black">배송지</h2>
@@ -412,13 +441,13 @@ export default function CheckoutPage() {
           <h2 className="text-xl font-semibold text-black">주문 상품</h2>
 
           {itemsToShow.map((item) =>
-            item.options.map((opt) => (
+            item.options.map((opt, idx) => (
               <div
-                key={`${item.productId}-${opt.optionId}`}
+                key={`${item.productId}-${idx}`}
                 className="flex items-center gap-4 bg-gray-50 p-3 rounded-xl shadow-sm"
               >
                 <img
-                  src={item.mainImg || "/images/default_main.png"}
+                  src={toFullUrlCDN(item.mainImg) || "/images/default_main.png"}
                   className="w-20 h-20 object-contain rounded border"
                 />
 

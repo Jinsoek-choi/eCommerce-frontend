@@ -198,10 +198,13 @@ export default function CartPage() {
           </div>
 
           <button
-            onClick={() => router.push("/order/checkout")}
+            onClick={() => {
+              sessionStorage.removeItem("checkoutData");  // 단건 구매 데이터(세션스토리지에 저장된 데이터) 삭제
+                  router.push("/order/checkout");
+            }}
             className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-900 font-semibold transition cursor-pointer"
           >
-            {totalPrice.toLocaleString()}원 결제하기
+            결제하기
           </button>
         </div>
       </div>

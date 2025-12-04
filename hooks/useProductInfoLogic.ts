@@ -143,7 +143,14 @@ export function useProductInfoLogic(
       productName: product.productName,
       mainImg: product.mainImg,
       sellPrice: product.sellPrice,
-      options: selectedOptions,
+      options: product.isOption
+        ? selectedOptions
+        : [
+            {
+              value: "기본",
+              count: 1,
+            },
+          ],
     };
 
     // 결제 페이지로 전달할 데이터 임시 저장
