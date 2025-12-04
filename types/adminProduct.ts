@@ -24,7 +24,7 @@ export interface AdminProduct {
   stock: number;              // stock (단일 상품일 때 유의미)
   isOption: boolean;          // is_option (true = 옵션 상품, false = 단품)
   mainImg?: string;           // main_img
-  subImages?: string[];       // 서브 이미지들(별도 테이블 연동 시에도 프론트에선 배열로 사용)
+  subImages?: ProductImage[];       
   productStatus: number;      // product_status (10,20,21,40,90 등)
   isShow: boolean;            // is_show
 
@@ -33,3 +33,8 @@ export interface AdminProduct {
   options: AdminProductOption[]; // 옵션 상품일 경우 옵션 목록
 }
 
+export interface ProductImage {
+  imageUrl: string;   // 이미지 URL
+  sortOrder: number;  // 이미지 정렬 순서
+  productId: number;  // 연결된 상품 ID
+}

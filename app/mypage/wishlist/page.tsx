@@ -6,19 +6,29 @@ import Link from "next/link";
 import { Trash2, ArrowUpDown } from "lucide-react";
 
 export default function WishlistPage() {
-  const { likedProducts, productInfos, toggleWishlist, loading } = useWishlist();
+  const { 
+    likedProducts,
+    productInfos,
+    toggleWishlist,
+    reloadWishlist,
+    loading } = useWishlist();
 
   const [sortedList, setSortedList] = useState<number[]>([]);
   const [sortLatest, setSortLatest] = useState<boolean>(true);
 
+  /** ⭐ 페이지 진입 시 서버 최신 데이터 강제 로드 */
+  useEffect(() => {
+    reloadWishlist();
+  }, []);
+
   // 정렬 적용
   useEffect(() => {
     if (sortLatest) {
-      setSortedList([...likedProducts].reverse()); // 최신순
+      setSortedList([...likedProducts].reverse());
     } else {
-      setSortedList([...likedProducts]); // 등록순
+      setSortedList([...likedProducts]);
     }
-  }, [likedProducts, sortLatest]);
+  }, [likedProducts, sortLatest, productInfos]);
 
   if (loading) {
     return (

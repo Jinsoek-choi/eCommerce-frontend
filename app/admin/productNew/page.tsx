@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Input from "../../ui/Input";
 import Button from "../../ui/Button";
 import ImageUpload from "../../ui/ImageUpload";
-import MultiImageUpload from "../../ui/MultiImageUpload";
+import MultiImageUpload from "../../ui/MultiImageUpload"; // MultiImageUpload
 import { Plus, Trash2 } from "lucide-react";
 
 import type { AdminProduct, AdminProductOption } from "@/types/adminProduct";
@@ -28,7 +28,7 @@ export default function ProductNewPage() {
     stock: 0,              // 단품일 때 사용
     isOption: false,
     mainImg: "",
-    subImages: [],
+    subImages: [],           // 상품 이미지 URL 배열
     productStatus: 10,     // 10:정상
     isShow: true,
     categoryCode: "",
@@ -116,6 +116,13 @@ export default function ProductNewPage() {
         : [],
     };
 
+    // 이미지를 ProductImage로 추가하기
+    const images = product.subImages?.map((imgUrl, idx) => ({
+      imageUrl: imgUrl,
+      sortOrder: idx + 1, // 이미지 순서
+      productId: product.productId, // 제품 ID
+    }));
+
     try {
       const res = await fetch(`${API_URL}/api/admin/products`, {
         method: "POST",
@@ -126,11 +133,20 @@ export default function ProductNewPage() {
       if (!res.ok) throw new Error("저장 실패");
       alert("상품이 등록되었습니다.");
       router.push("/admin/productList");
+
+      // 이미지를 ProductImage 테이블에 저장
+      await fetch(`${API_URL}/api/admin/products/images`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ images }),
+      });
+
     } catch (err) {
       console.error(err);
       alert("상품 등록 중 오류가 발생했습니다.");
     }
   };
+
 
   // ==============================
   // 렌더링
@@ -153,7 +169,7 @@ export default function ProductNewPage() {
 
             <p className="font-semibold mt-4">상세 이미지</p>
             <MultiImageUpload
-              images={product.subImages || []}
+              images={product.subImages?.map((image) => image.imageUrl) || []}  // ProductImage[]에서 imageUrl만 추출하여 string[]로 변환
               onChange={(imgs) => handleChange("subImages", imgs)}
             />
           </div>

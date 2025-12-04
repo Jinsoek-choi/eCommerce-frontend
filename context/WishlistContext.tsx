@@ -1,4 +1,5 @@
 "use client";
+
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import axios from "axios";
 
@@ -16,7 +17,8 @@ export interface Product {
 interface WishlistContextType {
   likedProducts: number[];
   productInfos: Record<number, Product>;
-  toggleWishlist: (productId: number) => void;
+  toggleWishlist: (productId: number) => Promise<void>;
+  reloadWishlist: () => void;
   loading: boolean;
 }
 
@@ -27,59 +29,52 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
   const [productInfos, setProductInfos] = useState<Record<number, Product>>({});
   const [loading, setLoading] = useState(true);
 
-  // 1️⃣ 초기 likedProducts 로드
+  /**  서버에서 실제 찜 목록 불러오기 */
+  const loadWishlist = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API_URL}/api/like/my`, { withCredentials: true });
+
+      const ids = res.data.map((p: Product) => p.productId);
+      setLikedProducts(ids);
+
+      const info: Record<number, Product> = {};
+      res.data.forEach((p: Product) => (info[p.productId] = p));
+      setProductInfos(info);
+
+    } catch (err) {
+      console.error("wishlist fetch error", err);
+      setLikedProducts([]);
+      setProductInfos({});
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("likedProducts") || "[]");
-    setLikedProducts(saved);
+    loadWishlist();
   }, []);
 
-  // 2️⃣ likedProducts가 바뀔 때마다 상품 정보 fetch
-  useEffect(() => {
-    if (likedProducts.length === 0) {
-      setProductInfos({});
-      setLoading(false);
-      return;
+  /** 좋아요 토글 */
+  const toggleWishlist = async (productId: number) => {
+    try {
+      await axios.post(`${API_URL}/api/like/toggle/${productId}`, {}, { withCredentials: true });
+      await loadWishlist(); // 서버 최신 데이터 반영
+    } catch (err) {
+      console.error("toggle like error", err);
     }
-
-    setLoading(true);
-    axios.get(`${API_URL}/api/like/my`, { withCredentials: true })
-      .then(res => {
-        const info: Record<number, Product> = {};
-        res.data.forEach((p: Product) => {
-          info[p.productId] = p;
-        });
-        setProductInfos(info);
-      })
-      .catch(err => console.error(err))
-      .finally(() => setLoading(false));
-  }, [likedProducts]);
-
-  // 3️⃣ 찜 토글
-  const toggleWishlist = (productId: number) => {
-    setLikedProducts(prev => {
-      const isLiked = prev.includes(productId);
-      const updated = isLiked ? prev.filter(id => id !== productId) : [...prev, productId];
-      localStorage.setItem("likedProducts", JSON.stringify(updated));
-
-      // 삭제 시 productInfos에서도 제거
-      if (isLiked) {
-        setProductInfos(info => {
-          const copy = { ...info };
-          delete copy[productId];
-          return copy;
-        });
-      }
-
-      return updated;
-    });
-
-    // 서버에도 요청
-    axios.post(`${API_URL}/api/like/toggle/${productId}`, {}, { withCredentials: true })
-      .catch(err => console.error(err));
   };
 
   return (
-    <WishlistContext.Provider value={{ likedProducts, productInfos, toggleWishlist, loading }}>
+    <WishlistContext.Provider
+      value={{
+        likedProducts,
+        productInfos,
+        toggleWishlist,
+        reloadWishlist: loadWishlist,
+        loading,
+      }}
+    >
       {children}
     </WishlistContext.Provider>
   );
