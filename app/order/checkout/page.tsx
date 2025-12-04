@@ -44,6 +44,83 @@ export default function CheckoutPage() {
     detail: "",
     isDefault: false,
   });
+  
+// -----------------------------
+// 📌 PortOne 카드 결제 진행
+// -----------------------------
+const handleCardPayment = async () => {
+  if (!selectedAddress) {
+    alert("배송지를 선택해주세요.");
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    // 1) 백엔드 — 카드 주문 READY 생성
+    const res = await fetch(`http://localhost:8080/api/orders/checkout/card?addressId=${selectedAddress}`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        memberId: 1,            // TODO: UserContext에서 로그인 유저 ID 가져오면 됨
+        addressId: selectedAddress,
+      }),
+    });
+
+    if (!res.ok) {
+      alert("결제 준비 중 오류 발생");
+      return;
+    }
+
+    const order = await res.json(); // { orderId, orderNumber, totalPrice }
+
+    // 2) PortOne 결제창 열기
+    const payment = await (window as any).PortOne.requestPayment({
+      storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID,
+      channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY,
+      paymentId: `payment-${order.orderId}-${Date.now()}`,
+      orderName: order.orderNumber,
+      totalAmount: order.totalPrice,
+      currency: "KRW",
+      payMethod: "CARD",
+      redirectUrl: window.location.origin + "/payment/result",
+    });
+
+    if (payment.code && payment.code !== "SUCCESS") {
+      alert("결제 취소 또는 실패");
+      return;
+    }
+
+    // 3) 백엔드에 결제 검증 요청
+    const verify = await fetch("http://localhost:8080/api/payment/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        paymentId: payment.paymentId,
+        orderId: order.orderId,
+      }),
+    });
+
+    const verifyMsg = await verify.text();
+
+    if (!verify.ok) {
+      alert("결제 검증 실패: " + verifyMsg);
+      return;
+    }
+
+    alert("결제가 완료되었습니다!");
+
+    clearCart();
+    router.push("/order/complete");
+
+    } catch (err) {
+      console.error(err);
+      alert("결제 중 오류 발생");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // -----------------------------
   // 📌 배송지 목록 불러오기 (백엔드)
@@ -371,6 +448,23 @@ export default function CheckoutPage() {
             {loading
               ? "결제 진행중..."
               : `${totalPrice.toLocaleString()}원 결제하기`}
+          </button>
+        </div>
+
+        {/* ----------------------------- */}
+        {/* 카드/카카오페이 결제 버튼 */}
+        {/* ----------------------------- */}
+        <div className="text-center">
+          <button
+            onClick={handleCardPayment}
+            disabled={loading}
+            className={`w-full mt-3 py-3 rounded-xl font-semibold text-white cursor-pointer transition ${
+              loading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700"
+            }`}
+          >
+            {loading ? "결제 진행중..." : "카드로 결제하기"}
           </button>
         </div>
       </div>

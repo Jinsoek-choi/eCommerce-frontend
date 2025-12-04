@@ -35,6 +35,7 @@ interface CartItem {
   stock: number;
   soldOut: boolean;
   option?: {
+    optionId: any;
     optionValue: string | null; 
     optionType: string;
     optionTitle: string | null;

@@ -28,7 +28,6 @@ export interface SelectedOption extends Option {
   count: number;  // 수량만 추가
 }
 
-
 /**
  * Product (상품 전체 타입)
  *

@@ -33,8 +33,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"
           strategy="beforeInteractive"
         />
-      </head>
 
+        {/* PortOne 결제 SDK */}
+        <Script
+          src="https://cdn.portone.io/v2/browser-sdk.js"
+          strategy="beforeInteractive"
+        />
+
+      </head>
       {/** body는 Server Component지만, 내부에 Client Component는 넣어도 됨 */}
       <body className="flex flex-col min-h-screen bg-gray-50 text-gray-900">
 

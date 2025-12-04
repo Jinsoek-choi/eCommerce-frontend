@@ -78,7 +78,7 @@ export default function CartPage() {
           <h1 className="text-2xl font-bold text-gray-900 mb-4">장바구니</h1>
           <button
             onClick={clearCart}
-            className="absolute top-6 right-6 flex items-center gap-1 px-2 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 transition"
+            className="absolute top-6 right-6 flex items-center gap-1 px-2 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition"
           >
             <Trash2 size={16} />
             전체 삭제
@@ -182,22 +182,21 @@ export default function CartPage() {
             </div>
             <div className="flex justify-between">
               <span>배송비</span>
-              <span className="text-blue-600">무료</span>
+              <span className="text-black font-semibold">무료</span>
             </div>
             <div className="flex justify-between pt-3 border-t font-bold text-lg">
               <span>총 결제 금액</span>
-              <span className="text-blue-600">{totalPrice.toLocaleString()}원</span>
+              <span className="text-black">{totalPrice.toLocaleString()}원</span>
             </div>
           </div>
 
           <button
             onClick={() => router.push("/order/checkout")}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 font-semibold transition cursor-pointer"
+            className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-900 font-semibold transition cursor-pointer"
           >
             {totalPrice.toLocaleString()}원 결제하기
           </button>
         </div>
-
       </div>
     </div>
   );
