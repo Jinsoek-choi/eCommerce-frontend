@@ -44,75 +44,86 @@ export default function CheckoutPage() {
     detail: "",
     isDefault: false,
   });
-  
-// -----------------------------
-// 📌 PortOne 카드 결제 진행
-// -----------------------------
-const handleCardPayment = async () => {
-  if (!selectedAddress) {
-    alert("배송지를 선택해주세요.");
-    return;
-  }
 
-  try {
-    setLoading(true);
+  // -----------------------------
+  // 📌 전화번호 자동 하이픈 적용 함수
+  // -----------------------------
+  const formatPhoneNumber = (value: string) => {
+    const digits = value.replace(/\D/g, ""); // 숫자만 남기기
 
-    // 1) 백엔드 — 카드 주문 READY 생성
-    const res = await fetch(`http://localhost:8080/api/orders/checkout/card?addressId=${selectedAddress}`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        memberId: 1,            // TODO: UserContext에서 로그인 유저 ID 가져오면 됨
-        addressId: selectedAddress,
-      }),
-    });
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 7) return digits.replace(/(\d{3})(\d{1,4})/, "$1-$2");
+    return digits.replace(/(\d{3})(\d{4})(\d{1,4}).*/, "$1-$2-$3");
+  };
 
-    if (!res.ok) {
-      alert("결제 준비 중 오류 발생");
+  // -----------------------------
+  // 📌 PortOne 카드 결제 진행
+  // -----------------------------
+  const handleCardPayment = async () => {
+    if (!selectedAddress) {
+      alert("배송지를 선택해주세요.");
       return;
     }
 
-    const order = await res.json(); // { orderId, orderNumber, totalPrice }
+    try {
+      setLoading(true);
 
-    // 2) PortOne 결제창 열기
-    const payment = await (window as any).PortOne.requestPayment({
-      storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID,
-      channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY,
-      paymentId: `payment-${order.orderId}-${Date.now()}`,
-      orderName: order.orderNumber,
-      totalAmount: order.totalPrice,
-      currency: "KRW",
-      payMethod: "CARD",
-      redirectUrl: window.location.origin + "/payment/result",
-    });
+      // 1) 백엔드 — 카드 주문 READY 생성
+      const res = await fetch(`http://localhost:8080/api/orders/checkout/card?addressId=${selectedAddress}`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          memberId: 1,            // TODO: UserContext에서 로그인 유저 ID 가져오면 됨
+          addressId: selectedAddress,
+        }),
+      });
 
-    if (payment.code && payment.code !== "SUCCESS") {
-      alert("결제 취소 또는 실패");
-      return;
-    }
+      if (!res.ok) {
+        alert("결제 준비 중 오류 발생");
+        return;
+      }
 
-    // 3) 백엔드에 결제 검증 요청
-    const verify = await fetch("http://localhost:8080/api/payment/verify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        paymentId: payment.paymentId,
-        orderId: order.orderId,
-      }),
-    });
+      const order = await res.json(); // { orderId, orderNumber, totalPrice }
 
-    const verifyMsg = await verify.text();
+      // 2) PortOne 결제창 열기
+      const payment = await (window as any).PortOne.requestPayment({
+        storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID,
+        channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY,
+        paymentId: `payment-${order.orderId}-${Date.now()}`,
+        orderName: order.orderNumber,
+        totalAmount: order.totalPrice,
+        currency: "KRW",
+        payMethod: "CARD",
+        redirectUrl: window.location.origin + "/payment/result",
+      });
 
-    if (!verify.ok) {
-      alert("결제 검증 실패: " + verifyMsg);
-      return;
-    }
+      if (payment.code && payment.code !== "SUCCESS") {
+        alert("결제 취소 또는 실패");
+        return;
+      }
 
-    alert("결제가 완료되었습니다!");
+      // 3) 백엔드에 결제 검증 요청
+      const verify = await fetch("http://localhost:8080/api/payment/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          paymentId: payment.paymentId,
+          orderId: order.orderId,
+        }),
+      });
 
-    clearCart();
-    router.push("/order/complete");
+      const verifyMsg = await verify.text();
+
+      if (!verify.ok) {
+        alert("결제 검증 실패: " + verifyMsg);
+        return;
+      }
+
+      alert("결제가 완료되었습니다!");
+
+      clearCart();
+      router.push("/order/complete");
 
     } catch (err) {
       console.error(err);
@@ -174,12 +185,12 @@ const handleCardPayment = async () => {
         sellPrice: c.price,
         options: c.option
           ? [
-              {
-                optionId: c.option.optionId,
-                value: `${c.option.optionTitle} ${c.option.optionValue}`,
-                count: c.quantity,
-              },
-            ]
+            {
+              optionId: c.option.optionId,
+              value: `${c.option.optionTitle} ${c.option.optionValue}`,
+              count: c.quantity,
+            },
+          ]
           : [{ optionId: 0, value: "기본", count: c.quantity }],
       }))
     );
@@ -290,11 +301,10 @@ const handleCardPayment = async () => {
           {addresses.map((addr) => (
             <label
               key={addr.id}
-              className={`flex justify-between items-center p-4 border rounded-xl cursor-pointer transition-all hover:ring-2 ${
-                selectedAddress === addr.id
-                  ? "ring-black border-black"
-                  : "border-gray-200"
-              }`}
+              className={`flex justify-between items-center p-4 border rounded-xl cursor-pointer transition-all hover:ring-2 ${selectedAddress === addr.id
+                ? "ring-black border-black"
+                : "border-gray-200"
+                }`}
             >
               <div className="space-y-1">
                 <p className="font-medium text-black">
@@ -344,8 +354,12 @@ const handleCardPayment = async () => {
                 placeholder="전화번호"
                 value={newAddress.phone}
                 onChange={(e) =>
-                  setNewAddress({ ...newAddress, phone: e.target.value })
+                  setNewAddress({
+                    ...newAddress,
+                    phone: formatPhoneNumber(e.target.value)
+                  })
                 }
+                maxLength={13}
                 className="w-full border rounded-lg px-3 py-2"
               />
               <input
@@ -367,7 +381,7 @@ const handleCardPayment = async () => {
                 className="w-full border rounded-lg px-3 py-2"
               />
 
-              <label className="flex items-center gap-2">
+              <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={newAddress.isDefault}
@@ -383,7 +397,7 @@ const handleCardPayment = async () => {
 
               <button
                 onClick={addNewAddress}
-                className="w-full bg-black text-white py-2 rounded-lg hover:bg-gray-900 font-semibold transition"
+                className="w-full bg-black text-white py-2 rounded-lg hover:bg-gray-900 font-semibold transition cursor-pointer"
               >
                 배송지 추가
               </button>
@@ -435,37 +449,30 @@ const handleCardPayment = async () => {
         {/* ----------------------------- */}
         {/* 결제 버튼 */}
         {/* ----------------------------- */}
-        <div className="text-center">
-          <button
-            onClick={handleOrder}
-            disabled={loading}
-            className={`w-full py-3 rounded-xl font-semibold text-white cursor-pointer transition ${
-              loading
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-black hover:bg-gray-900"
-            }`}
-          >
-            {loading
-              ? "결제 진행중..."
-              : `${totalPrice.toLocaleString()}원 결제하기`}
-          </button>
-        </div>
+        <div className="space-y-2">
+            <button
+              onClick={handleOrder}
+              disabled={loading}
+              className={`w-full py-3 rounded-xl font-semibold text-white cursor-pointer transition ${loading
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-black hover:bg-gray-900"
+                }`}
+            >
+              {loading
+                ? "결제 진행중..."
+                : `${totalPrice.toLocaleString()}원 결제하기`}
+            </button>
 
-        {/* ----------------------------- */}
-        {/* 카드/카카오페이 결제 버튼 */}
-        {/* ----------------------------- */}
-        <div className="text-center">
-          <button
-            onClick={handleCardPayment}
-            disabled={loading}
-            className={`w-full mt-3 py-3 rounded-xl font-semibold text-white cursor-pointer transition ${
-              loading
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700"
-            }`}
-          >
-            {loading ? "결제 진행중..." : "카드로 결제하기"}
-          </button>
+            <button
+              onClick={handleCardPayment}
+              disabled={loading}
+              className={`w-full py-3 rounded-xl font-semibold border border-gray-300 cursor-pointer transition ${loading
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-white hover:bg-gray-200"
+                }`}
+            >
+              {loading ? "결제 진행중..." : "카드로 결제하기"}
+            </button>
         </div>
       </div>
     </div>

@@ -1,10 +1,3 @@
-"use client";
-
-import Link from "next/link";
-import { useCart } from "@/context/CartContext";
-import { Trash2, Plus, Minus } from "lucide-react";
-import { useRouter } from "next/navigation";
-
 /**
  * 📌 [왜 CartPage는 별도로 분리하지 않고 하나의 컴포넌트로 유지하는가?]
  *
@@ -37,11 +30,18 @@ import { useRouter } from "next/navigation";
  * - 남은 부분은 UI 렌더링이라 페이지 하나로 유지하는 것이 가장 안정적이고 간단함.
  * - 지금 구조가 실무에서 쓰기에도 충분히 좋음!
  */
+"use client";
+
+import Link from "next/link";
+import { useCart } from "@/context/CartContext";
+import { Trash2, Plus, Minus } from "lucide-react";
+import { useRouter } from "next/navigation";
+
 export default function CartPage() {
   const router = useRouter();
   const { cart, initialLoading, deleteItem, updateQuantity, clearCart } = useCart();
 
-  // 1)초기 로딩 중일 때
+  // 로딩 화면
   if (initialLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-600">
@@ -50,9 +50,8 @@ export default function CartPage() {
     );
   }
 
-
-  // 2) 장바구니 비어있을 때
-  if (!initialLoading && cart.length === 0) {
+  // 장바구니 비어있음
+  if (cart.length === 0) {
     return (
       <div className="min-h-screen bg-gray-100 py-10 px-6">
         <div className="max-w-3xl mx-auto bg-white rounded-xl shadow p-10 text-center">
@@ -63,7 +62,7 @@ export default function CartPage() {
     );
   }
 
-  // 3) 장바구니가 있을 때
+  // 전체 금액
   const totalPrice = cart.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
@@ -73,12 +72,16 @@ export default function CartPage() {
     <div className="py-10 px-6 max-w-6xl mx-auto">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-        {/* 장바구니 목록 */}
+        {/* ------------------------------ */}
+        {/* 🔥 장바구니 리스트 */}
+        {/* ------------------------------ */}
         <div className="lg:col-span-2 bg-white rounded-xl shadow p-6 flex flex-col gap-6 relative">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">장바구니</h1>
+
+          {/* 전체 삭제 버튼 */}
           <button
             onClick={clearCart}
-            className="absolute top-6 right-6 flex items-center gap-1 px-2 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition"
+            className="absolute top-6 right-6 flex items-center gap-1 px-2 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition cursor-pointer"
           >
             <Trash2 size={16} />
             전체 삭제
@@ -89,6 +92,7 @@ export default function CartPage() {
               key={item.cartId}
               className="flex flex-col md:flex-row items-center gap-4 border-b border-gray-200 pb-4"
             >
+              {/* 썸네일 */}
               <Link href={`/product/${item.productId}`}>
                 <div className="w-28 h-28 flex-shrink-0">
                   <img
@@ -108,14 +112,15 @@ export default function CartPage() {
                     {item.productName}
                   </p>
 
-                  {/* 옵션 표시 */}
-                  {item.option && (
-                    <p className="text-gray-500 text-sm mt-1">
-                      옵션: [{item.option.optionTitle}] {item.option.optionValue}
-                    </p>
-                  )}
+                {/* 옵션 출력 */}
+                {item.optionValue && (
+                  <p className="text-sm text-gray-600 mt-1">
+                    {item.optionTitle ? `${item.optionTitle}: ` : ""}
+                    <span className="font-medium">{item.optionValue}</span>
+                  </p>
+                )}
 
-                  {/* 품절 표시 */}
+                {/* 품절 상태 */}
                   {item.soldOut && (
                     <p className="text-red-500 text-sm font-semibold mt-1">
                       품절된 상품입니다
@@ -123,15 +128,16 @@ export default function CartPage() {
                   )}
                 </div>
 
-                {/* 수량 / 가격 / 삭제 */}
+                {/* 수량, 가격, 삭제 버튼 */}
                 <div className="flex items-center justify-between mt-3">
 
+                  {/* 수량 제어 */}
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() =>
                         updateQuantity(item.cartId, Math.max(1, item.quantity - 1))
                       }
-                      className="p-1 bg-gray-400 rounded hover:bg-gray-500 transition cursor-pointer"
+                      className="p-1 bg-gray-300 rounded hover:bg-gray-400 transition cursor-pointer"
                     >
                       <Minus size={16} />
                     </button>
@@ -141,16 +147,15 @@ export default function CartPage() {
                     </span>
 
                     <button
-                      onClick={() =>
-                        updateQuantity(item.cartId, item.quantity + 1)
-                      }
-                      className="p-1 bg-gray-400 rounded hover:bg-gray-500 transition cursor-pointer"
+                      onClick={() => updateQuantity(item.cartId, item.quantity + 1)}
+                      className="p-1 bg-gray-300 rounded hover:bg-gray-400 transition cursor-pointer"
                     >
                       <Plus size={16} />
                     </button>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  {/* 가격 + 삭제 */}
+                  <div className="flex items-center gap-3">
                     <p className="text-gray-900 font-bold">
                       {(item.price * item.quantity).toLocaleString()}원
                     </p>
@@ -166,12 +171,12 @@ export default function CartPage() {
                 </div>
               </div>
             </div>
-
-
           ))}
         </div>
 
-        {/* 결제 요약 */}
+        {/* ------------------------------ */}
+        {/* 💳 결제 정보 */}
+        {/* ------------------------------ */}
         <div className="bg-white rounded-xl shadow p-6 flex flex-col gap-6 h-fit sticky top-10">
           <h2 className="text-xl font-bold text-gray-900 mb-2">결제 정보</h2>
 
@@ -180,10 +185,12 @@ export default function CartPage() {
               <span>상품 금액</span>
               <span>{totalPrice.toLocaleString()}원</span>
             </div>
+
             <div className="flex justify-between">
               <span>배송비</span>
               <span className="text-black font-semibold">무료</span>
             </div>
+
             <div className="flex justify-between pt-3 border-t font-bold text-lg">
               <span>총 결제 금액</span>
               <span className="text-black">{totalPrice.toLocaleString()}원</span>

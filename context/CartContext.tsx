@@ -15,7 +15,10 @@ import axios from "@/context/axiosConfig";
 axios.defaults.withCredentials = true;
 
 /** --------------------------------------
- * Debounce Utility (브라우저 환경 호환)
+ * Debounce Utility
+ *  - 서버 요청이 연속적으로 여러 번 호출될 때
+ *    마지막 호출만 실행되도록 조절하는 함수
+ *  - 장바구니 수량/옵션 변경 시 서버 부하 방지
  * -------------------------------------- */
 function debounce(callback: (...args: any[]) => void, delay: number) {
   let timer: ReturnType<typeof setTimeout>;
@@ -34,15 +37,24 @@ interface CartItem {
   price: number;
   stock: number;
   soldOut: boolean;
-  option?: {
-    optionId: any;
-    optionValue: string | null; 
-    optionType: string;
-    optionTitle: string | null;
-  } | null;
+
+  // option 객체가 아니라 optionValue / optionTitle 개별 필드로 옴
+  optionValue?: string | null;
+  optionTitle?: string | null;
 }
 
-
+/** --------------------------------------
+ * CartContext Public API
+ *
+ *  - cart: 장바구니 목록
+ *  - initialLoading: 첫 로딩 여부
+ *  - loadCart(): 서버에서 장바구니 불러오기
+ *  - addToCart(): 장바구니 추가
+ *  - updateQuantity(): 수량 변경
+ *  - changeOption(): 옵션 변경
+ *  - deleteItem(): 항목 삭제
+ *  - clearCart(): 전체 비우기
+ * -------------------------------------- */
 interface CartContextType {
   cart: CartItem[];
   initialLoading: boolean;
@@ -53,7 +65,6 @@ interface CartContextType {
   deleteItem: (cartId: number) => void;
   clearCart: () => void;
 }
-
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
@@ -66,10 +77,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL; 
 
-
   /** --------------------------------------
-   * loadCart — 서버에서 장바구니 불러오기
-   * 조건 적고 호출 최소화 (실무 패턴)
+   * loadCart()
+   * - 로그인한 일반 유저만 장바구니를 가져옴
+   * - Admin은 장바구니 기능 미사용
+   * - 서버에서 최신 장바구니 가져옴
    * -------------------------------------- */
   const loadCart = useCallback(() => {
     if (!user || !user.id || isAdmin) {
@@ -82,19 +94,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
       .get(`${API_URL}/api/cart`)
       .then((res) => setCart(res.data.items || []))
       .finally(() => {
-        setInitialLoading(false);   // ← 페이지 첫 로딩만 종료
+        setInitialLoading(false);   // 페이지 첫 로딩만 종료
       });
   }, [user, isAdmin]);
 
-
-  /** --------------------------------------
-   * Debounced loadCart — 연타 대비 서버 요청 줄이기
+    /** --------------------------------------
+   * Debounced loadCart()
+   * - 수량/옵션 변경이 연속적으로 발생할 때
+   *   서버 요청을 1번만 보내도록 조절(연타 대비 서버 요청 줄이기)
    * -------------------------------------- */
   const debouncedLoadCart = useMemo(() => debounce(loadCart, 250), [loadCart]);
 
   /** --------------------------------------
-   * Add to Cart
-   * - 서버 요청 후 debouncedLoadCart만 호출
+   * addToCart()
+   * - 상품 상세에서 장바구니 담기 버튼 클릭 시 호출
+   * - 서버 호출 후 debouncedLoadCart로 최신 데이터 반영
    * -------------------------------------- */
   function addToCart(productId: number, optionValue: string | null, quantity: number) {
     console.log("addToCart payload:", { productId, optionValue, quantity });
@@ -107,14 +121,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
       .catch((err) => console.error("장바구니 담기 실패:", err));
   }
 
-
   /** --------------------------------------
-   * Update Quantity (optimis) UI + debounce)
+   * updateQuantity()
+   * - 수량 증가/감소 버튼 클릭 시 호출
+   * - UI는 즉시 반영(Optimistic UI)
+   * - 서버 업데이트는 디바운스로 처리
    * -------------------------------------- */
   function updateQuantity(cartId: number, quantity: number) {
     if (isAdmin || !user) return;
 
-    // UI 먼저 수정
+    // UI 즉시 반영(먼저 수정)
     setCart((prev) =>
       prev.map((item) => (item.cartId === cartId ? { ...item, quantity } : item))
     );
@@ -126,24 +142,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }
 
   /** --------------------------------------
-   * Change Option (Optimistic UI + debounce)
+   * changeOption()
+   * - 옵션 변경 UI가 있는 경우 사용
+   * - 서버에 옵션값 업데이트 요청
    * -------------------------------------- */
   function changeOption(cartId: number, newOptionValue: string) {
     if (isAdmin || !user) return;
-
-    // // Optimistic UI 업데이트
-    // setCart((prev) =>
-    //   prev.map((item) => {
-    //     if (item.cartId !== cartId) return item;
-
-    //     return {
-    //       ...item,
-    //       option: item.option
-    //         ? { ...item.option, optionId: newOptionId }
-    //         : { optionId: newOptionId },
-    //     };
-    //   })
-    // );
 
     // 서버 요청 (디바운스 적용)
     axios
@@ -156,7 +160,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }
 
   /** --------------------------------------
-   * Delete Item
+   * deleteItem() - 개별 항목 삭제
    * -------------------------------------- */
   function deleteItem(cartId: number) {
     if (isAdmin || !user) return;
@@ -166,7 +170,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       .then(() => debouncedLoadCart());
   }
 
-  /** 장바구니 비우기 */
+  /** --------------------------------------
+   * clearCart() - 장바구니 전체 비우기
+   * -------------------------------------- */
   function clearCart() {
     if (isAdmin || !user) return;
 
@@ -177,7 +183,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
 
   /** --------------------------------------
-   * 로그인 상태 변화 감지하여 장바구니 로딩
+   * useEffect — 유저 상태 변화 감지하여 자동 로딩
+   * - 로그인 → 장바구니 불러오기
+   * - 로그아웃 / Admin → 장바구니 초기화
    * -------------------------------------- */
   useEffect(() => {
     if (!user || isAdmin) {
@@ -205,6 +213,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/** --------------------------------------
+ * useCart()
+ * - CartContext 안전하게 사용하기 위한 커스텀 훅
+ * -------------------------------------- */
 export const useCart = () => {
   const ctx = useContext(CartContext);
   if (!ctx) throw new Error("useCart must be used within CartProvider");

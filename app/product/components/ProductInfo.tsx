@@ -42,7 +42,6 @@ export default function ProductInfo({ product }: { product: Product }) {
 
   // 색상 옵션 여부
   const hasColorOptions = product.options?.some(opt => !!opt.colorCode);
-  console.log(product.options)
 
   // 총 가격 합산
   const finalPrice = useOptionTotalPrice(product, selectedOptions);
@@ -257,7 +256,8 @@ export default function ProductInfo({ product }: { product: Product }) {
             </button>
           </div>
         ))}
-        {/* 🔥 총 결제 금액 표시 */}
+
+        {/* 총 결제 금액 표시 */}
         <div className="flex justify-between text-lg font-bold text-black">
           <span>총 결제 금액</span>
           <span>{finalPrice.toLocaleString()}원</span>
