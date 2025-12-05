@@ -111,6 +111,41 @@ export default function ProductNewPage() {
   }, [API_URL]);
 
   // ------------------------------
+  // AI 상품 설명 자동 생성
+  // ------------------------------
+  const handleGenerateDescription = async () => {
+    if (!product.productName) {
+      alert("상품명을 먼저 입력해주세요.");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/api/admin/products/generate-description`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: product.productName,
+          price: product.sellPrice,
+          options: product.options.map((opt) => opt.optionValue).join(", "),
+          category_path: product.categoryCode,
+          image_url: product.mainImg,
+        }),
+      });
+
+      const data = await res.json();
+
+      setProduct((prev) => ({
+        ...prev,
+        description: data.description,
+      }));
+
+    } catch (err) {
+      console.error(err);
+      alert("AI 설명 생성 중 오류가 발생했습니다.");
+    }
+  };
+
+  // ------------------------------
   // 저장
   // ------------------------------
   const handleSave = async () => {
@@ -352,6 +387,15 @@ export default function ProductNewPage() {
               <label className="block text-sm font-semibold text-gray-700 mb-1">
                 상품 설명
               </label>
+
+              {/* ai 상품 설명 생성 버튼 */}
+              <button
+                type="button"
+                className="text-sm px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                onClick={handleGenerateDescription}>
+                  AI 자동 생성
+                </button>
+
               <textarea
                 className="w-full border rounded-md px-3 py-2 text-sm min-h-[120px]"
                 value={product.description || ""}
