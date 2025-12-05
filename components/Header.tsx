@@ -100,7 +100,7 @@ export default function Header() {
                 <Link href="/login" className="hover:text-gray-300">
                   로그인
                 </Link>
-                <Link href="/signup" className="hover:text-gray-300">
+                <Link href="/join" className="hover:text-gray-300">
                   회원가입
                 </Link>
               </>
