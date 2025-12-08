@@ -85,6 +85,19 @@ export default function ProductNewPage() {
   // ------------------ 이미지 ------------------
   const handleAddSubImage = () => {
     if (!subImageUrl) return;
+
+    setProduct(prev => ({
+      ...prev,
+      subImages: [
+        ...(prev.subImages ?? []),
+        {
+          imageUrl: subImageUrl,
+          sortOrder: (prev.subImages?.length ?? 0) + 1,
+          productId: 0, // 신규 생성 시 0 또는 null, 백엔드 저장 시 DB에서 자동 할당됨
+        }
+      ]
+    }));
+
     setSubImageUrl("");
   };
 
@@ -111,6 +124,11 @@ export default function ProductNewPage() {
       return;
     }
 
+    const imageUrls = [
+      product.mainImg,
+      ...((product.subImages ?? []).map(img => img.imageUrl))
+    ];
+
     try {
       const res = await fetch(`${API_URL}/api/admin/products/generate-description`, {
         method: "POST",
@@ -120,15 +138,16 @@ export default function ProductNewPage() {
           price: product.sellPrice,
           options: product.options.map((opt) => opt.optionValue).join(", "),
           category_path: product.categoryCode,
-          image_url: product.mainImg,
-        }),
-      });
+          image_urls: imageUrls,
+        }), // JSON.stringify 끝
+      });   // fetch 옵션 객체 끝, fetch() 끝
 
-      const data = await res.json();
+     const data = await res.json();
 
-      setProduct((prev) => ({
+      setProduct(prev => ({
         ...prev,
-        description: data.description,
+        description: data.description ?? "",
+        blocks: data.blocks ?? []
       }));
 
     } catch (err) {
