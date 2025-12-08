@@ -75,13 +75,20 @@ export default function Signup() {
 
   // 전화번호 자동 하이픈
   const handlePhoneChange = (value: string) => {
-    const number = value.replace(/[^0-9]/g, "");
+    // 숫자만 남기고, 11자리까지만 제한
+    const number = value.replace(/[^0-9]/g, "").slice(0, 11);
     let formatted = "";
 
-    if (number.length < 4) formatted = number;
-    else if (number.length < 7) formatted = number.substr(0, 3) + "-" + number.substr(3);
-    else if (number.length < 11) formatted = number.substr(0, 3) + "-" + number.substr(3, 3) + "-" + number.substr(6);
-    else formatted = number.substr(0, 3) + "-" + number.substr(3, 4) + "-" + number.substr(7);
+    if (number.length < 4) {
+      formatted = number;
+    } else if (number.length < 7) {
+      formatted = number.substr(0, 3) + "-" + number.substr(3);
+    } else if (number.length < 11) {
+      formatted = number.substr(0, 3) + "-" + number.substr(3, 3) + "-" + number.substr(6);
+    } else {
+      // 11자리 정확히 입력된 경우 (3-4-4)
+      formatted = number.substr(0, 3) + "-" + number.substr(3, 4) + "-" + number.substr(7);
+    }
 
     setPhone(formatted);
   };
