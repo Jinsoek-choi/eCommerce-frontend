@@ -183,9 +183,9 @@ export default function Page() {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-            {currentProducts.map((p) => (
+            {currentProducts.map((p, index) => (
               <Link
-                key={p.productId}
+                key={`${p.productId}-${index}`}  // key가 중복되지 않도록 productId와 index 결합
                 href={`/product/${p.productId}`}
                 className="text-center bg-white rounded-2xl shadow hover:shadow-xl transition flex flex-col cursor-pointer overflow-hidden"
               >
