@@ -383,11 +383,36 @@ export default function ProductNewPage() {
               <label className="block text-sm font-semibold text-gray-700 mb-1">
                 상품 설명
               </label>
+              {/* ai 상품 설명 생성 버튼 */}
+                <button
+                  type="button"
+                  onClick={handleGenerateDescription}
+                  disabled={loadingDescription}
+                  className="px-3 py-1 text-xs bg-black text-white rounded hover:bg-gray-800 cursor-pointer"
+                >
+                  {loadingDescription ? "생성중..." : "AI 자동 작성"}
+                </button>
               <textarea
                 className="w-full border rounded-md px-3 py-2 text-sm min-h-[120px]"
                 value={product.description || ""}
                 onChange={(e) => handleChange("description", e.target.value)}
               />
+
+              <div className="mt-4 space-y-4">
+                {product.blocks?.map((block, idx) => (
+                  <div key={idx}>
+                    {block.type === "text" && (
+                      <p className="text-sm text-gray-700 whitespace-pre-line">
+                        {block.content}
+                      </p>
+                    )}
+
+                    {block.type === "image" && (
+                      <img src={block.url} className="w-full rounded-lg" />
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* 가격 / 재고 */}
