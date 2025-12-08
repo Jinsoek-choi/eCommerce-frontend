@@ -23,6 +23,13 @@ export default function LoginPage() {
       return;
     }
 
+    // 이메일 형식 체크
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(id.trim())) {
+      toast.error("올바른 이메일 형식을 입력하세요.");
+      return;
+    }
+
     try {
       const response = await axios.post(
         `${API_URL}/api/auth/login`,
@@ -40,12 +47,9 @@ export default function LoginPage() {
       else router.push("/");
 
     } catch (error: any) {
-      if (error.response?.status === 404) {
-        toast.error("존재하지 않는 사용자입니다.");
-        return;
-      }
-      if (error.response?.status === 401) {
-        toast.error("비밀번호가 일치하지 않습니다.");
+      // 이메일 또는 비밀번호 오류를 한 메시지로 통합
+      if (error.response?.status === 401 || error.response?.status === 404) {
+        toast.error("이메일 또는 비밀번호가 일치하지 않습니다.");
         return;
       }
       toast.error("서버 오류 또는 네트워크 오류");

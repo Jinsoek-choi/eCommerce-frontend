@@ -44,6 +44,13 @@ export default function Signup() {
   const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    // 이메일 형식 체크
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      toast.error("올바른 이메일 형식을 입력하세요.");
+      return;
+    }
+
     if (pw !== pwCheck) {
       toast.error("비밀번호가 일치하지 않습니다.");
       return;
@@ -217,6 +224,7 @@ function InputBox({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         className="w-full p-3 border border-gray-300 rounded-lg text-black outline-none focus:ring-[1.5px] ring-black"
+        required
       />
     </div>
   );
