@@ -27,6 +27,8 @@ export interface AdminProduct {
     content?: string;
     url?: string;
   }[];
+  // 백엔드 옵션 삭제용 
+  deleteOptionIds?: number[];
 }
 
 // AI 상품 설명 자동 생성을 위한 서브 이미지

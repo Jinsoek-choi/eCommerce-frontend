@@ -182,15 +182,15 @@ export default function HomePage() {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-            {currentProducts.map((p, index) => (
+            {currentProducts.map((p) => (
               <Link
-                key={`${p.productId}-${index}`}  // key가 중복되지 않도록 productId와 index 결합
+                key={p.productId}
                 href={`/product/${p.productId}`}
                 className="text-center bg-white rounded-2xl shadow hover:shadow-xl transition flex flex-col cursor-pointer overflow-hidden"
               >
                 <div className="w-full rounded-xl overflow-hidden flex items-center justify-center bg-white">
                   <img
-                    src={`${BASE}${p.mainImg}` || "/images/default_main.png"}
+                    src={p.mainImg ? `${BASE}${p.mainImg}` : "/images/default_main.png"}
                     alt={p.productName}
                     className="w-full h-full object-contain"
                   />
