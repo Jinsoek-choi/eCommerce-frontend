@@ -1,36 +1,36 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
-interface IntroProps {
-  onFinish: () => void;
-}
-
-export default function IntroPage({ onFinish }: IntroProps) {
+export default function IntroPage() {
+  const router = useRouter();
   const introLines = ["Your Daily", "Journey"];
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     const seen = sessionStorage.getItem("introSeen");
 
+    // 이미 인트로 본 적 있으면 바로 홈으로 이동
     if (seen === "true") {
-      onFinish(); // 이미 본 경우 바로 홈 화면
+      router.push("/");
       return;
     }
 
     setMounted(true);
 
+    // 3초 후 자동으로 홈 이동 + introSeen 저장
     const timer = setTimeout(() => {
       sessionStorage.setItem("introSeen", "true");
-      onFinish(); // 3초 후 홈 화면으로
+      router.push("/");
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, [onFinish]);
+  }, [router]);
 
   const goHome = () => {
     sessionStorage.setItem("introSeen", "true");
-    onFinish(); // 버튼 클릭 시 홈 화면으로
+    router.push("/");
   };
 
   const renderLine = (line: string, lineIdx: number) => {
@@ -46,6 +46,7 @@ export default function IntroPage({ onFinish }: IntroProps) {
     return chars.map((char, idx) => {
       const delay = delays[idx];
 
+      // Journey 의 O 를 이미지로 변경
       if (lineIdx === 1 && char.toLowerCase() === "o") {
         return (
           <img
