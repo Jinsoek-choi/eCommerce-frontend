@@ -1,10 +1,10 @@
 "use client";
 
-import Header from "../components/Header";
-import Footer from "../components/Footer";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, ReactNode } from "react";
 import Intro from "./intro/Intro";
+import Header from "../components/Header";
+import Footer from "../components/Footer";
 
 export default function ClientRoot({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -12,6 +12,11 @@ export default function ClientRoot({ children }: { children: ReactNode }) {
 
   // 🔹 인트로 상태
   const [showIntro, setShowIntro] = useState<boolean | null>(null);
+
+  // 인트로가 끝나면 호출될 함수
+  const handleIntroFinish = () => {
+    setShowIntro(false); // 인트로 완료 후 화면을 바꿈
+  };
 
   useEffect(() => {
     const seen = sessionStorage.getItem("introSeen");
@@ -22,7 +27,7 @@ export default function ClientRoot({ children }: { children: ReactNode }) {
   if (showIntro === null) return null;
 
   // 인트로 표시
-  if (showIntro) return <Intro />;
+  if (showIntro) return <Intro onFinish={handleIntroFinish} />; // Intro에 onFinish 전달
 
   return (
     <>

@@ -40,6 +40,11 @@ export default function HomePage() {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 8;
 
+    // 인트로가 끝나면 호출될 함수
+  const handleIntroFinish = () => {
+    setShowIntro(false); // 인트로 완료 후 화면을 바꿈
+  };
+
   const bannerImages = [
     "/images/banner1.png",
     "/images/banner2.png",
@@ -48,6 +53,7 @@ export default function HomePage() {
 
   const truncate = (text: string, max = 15) =>
     text.length > max ? text.slice(0, max) + "..." : text;
+
 
   // ⭐ 인트로 체크 (CSR 이후)
   useEffect(() => {

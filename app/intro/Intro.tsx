@@ -3,7 +3,11 @@
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 
-export default function Intro() {
+export interface IntroProps {
+  onFinish: () => void; // onFinish를 prop으로 받음
+}
+
+export default function Intro({ onFinish }: IntroProps) {
   const router = useRouter();
   const introLines = ["Your Daily", "Journey"];
   const [ready, setReady] = useState(false);
@@ -27,14 +31,16 @@ export default function Intro() {
     const timer = setTimeout(() => {
       sessionStorage.setItem("introSeen", "true");
       router.replace("/");
+      onFinish();  // 인트로 끝난 후 onFinish 호출
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, [ready, router]);
+  }, [ready, router, onFinish]);
 
   const goHome = () => {
     sessionStorage.setItem("introSeen", "true");
     router.replace("/");
+    onFinish();  // 버튼 클릭 시에도 호출
   };
 
   // 🔥 line 길이에 맞춰 랜덤 딜레이 2줄 생성
@@ -100,4 +106,3 @@ export default function Intro() {
     </div>
   );
 }
-
