@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
 import "swiper/css";
+import IntroPage from "./intro/page";
 
 interface Product {
   productId: number;
@@ -108,17 +109,12 @@ export default function HomePage() {
   const startIdx = (currentPage - 1) * pageSize;
   const currentProducts = filteredProducts.slice(startIdx, startIdx + pageSize);
 
-<<<<<<< HEAD
   if (showIntro) return <IntroPage />; // 체크 완료 전 렌더링 X
 
   // ▣ 렌더링
   return showIntro ? (
     <IntroPage />
   ) : (
-=======
-  // 렌더링
-  return (
->>>>>>> upstream/main
     <div className="w-full overflow-x-hidden">
 
       {/* ▣ 1. 배너 */}
