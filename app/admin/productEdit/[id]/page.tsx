@@ -23,7 +23,8 @@ export default function ProductEditPage() {
   const [selectedBig, setSelectedBig] = useState<string>("");
   const [selectedMid, setSelectedMid] = useState<string>("");
   const [subImageUrl, setSubImageUrl] = useState<string>("");
-  const [deletedOptionIds, setDeletedOptionIds] = useState<number[]>([]); // 옵션 삭제를 위한 배열
+  const [deletedOptionIds, setDeletedOptionIds] = useState<number[]>([]);  // 옵션 삭제를 위한 배열
+  const [loadingDescription, setLoadingDescription] = useState(false);
 
   // ------------------------------
   // 카테고리 트리 fetch
@@ -252,6 +253,8 @@ export default function ProductEditPage() {
       return;
     }
 
+    setLoadingDescription(true); 
+
     const imageUrls = [
       product.mainImg,
       ...((product.subImages ?? []).map(img => img.imageUrl))
@@ -283,6 +286,8 @@ export default function ProductEditPage() {
     } catch (err) {
       console.error(err);
       toast.error("AI 설명 생성 중 오류가 발생했습니다.");
+    } finally {
+      setLoadingDescription(false);   // ← 추가
     }
   };
 
@@ -356,36 +361,38 @@ export default function ProductEditPage() {
     );
   }
 
-  // ==============================
-  // 렌더링
-  // ==============================
   return (
     <div className="py-10 px-4 min-h-screen">
-      <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-lg p-6 md:p-10">
+      <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl md:text-4xl font-extrabold mb-8 text-gray-800 pb-2 border-b border-gray-200">
           상품 수정
         </h1>
 
-        {/* 왼쪽: 이미지 */}
-        <div className="mb-4">
-          <Input
-            label="대표 이미지 URL"
-            value={product.mainImg}
-            onChange={(e) => setProduct({ ...product, mainImg: e.target.value })}
-            placeholder="대표 이미지 URL을 입력하세요"
-          />
-
-          {/* 대표 이미지 미리보기 */}
-          {product.mainImg && (
-            <div className="mt-2">
-              <img
-                // src={`${IMAGE_BASE_URL}${product.mainImg}`}
-                src={`${product.mainImg}`}
-                alt="대표 이미지 미리보기"
-                className="w-120px h-240px object-contain"
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* -------------------- LEFT: 상품 기본 정보 -------------------- */}
+          <div className="lg:col-span-2 bg-white rounded-2xl shadow-lg p-6 md:p-8">
+            
+            {/* 대표 이미지 URL */}
+            <div className="mb-4">
+              <Input
+                label="대표 이미지 URL"
+                value={product.mainImg}
+                onChange={(e) => setProduct({ ...product, mainImg: e.target.value })}
+                placeholder="대표 이미지 URL을 입력하세요"
               />
-            </div>
-          )}
+
+            {/* 대표 이미지 미리보기 */}
+            {product.mainImg && (
+              <div className="mt-2">
+                <img
+                  // src={`${IMAGE_BASE_URL}${product.mainImg}`}
+                  src={`${product.mainImg}`}
+                  alt="대표 이미지 미리보기"
+                  className="w-120px h-240px object-contain"
+                />
+              </div>
+            )}
+          </div>
 
           <div className="mb-4">
             {/* 상세 이미지 URL 입력 */}
@@ -430,7 +437,6 @@ export default function ProductEditPage() {
               </div>
             )}
           </div>
-
 
           {/* 우측: 상품 정보 */}
           <div className="flex flex-col gap-6 md:w-1/2">
@@ -516,42 +522,7 @@ export default function ProductEditPage() {
                 )}
               </div>
             )}
-
-            {/* 상품 설명 */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">
-                상품 설명
-              </label>
-
-              <button
-                type="button"
-                onClick={handleGenerateDescription}
-                className="px-3 py-1 mb-2 text-xs bg-black text-white rounded hover:bg-gray-800 cursor-pointer"
-              >
-                AI 자동 작성
-              </button>
-
-              <textarea
-                className="w-full border rounded-md px-3 py-2 text-sm min-h-[120px]"
-                value={product.description || ""}
-                onChange={(e) => handleChange("description", e.target.value)}
-              />
-            
-            {/* 블록 미리보기 */}
-              <div className="mt-4 space-y-4">
-                {product.blocks?.map((block, idx) => (
-                  <div key={idx}>
-                    {block.type === "text" && (
-                      <p className="text-sm text-gray-700 whitespace-pre-line">{block.content}</p>
-                    )}
-                    {block.type === "image" && (
-                      <img src={block.url} className="w-full rounded-lg" />
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-            
+    
             {/* 가격 / 재고 */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Input
@@ -777,10 +748,48 @@ export default function ProductEditPage() {
               </div>
             )}
 
+            {/* 저장 버튼 */}
             <Button className="w-full mt-6 py-3 text-lg" onClick={handleSave}>
               상품 수정
             </Button>
+            </div>
           </div>
+
+          {/* -------------------- RIGHT: AI 설명 생성 -------------------- */}
+          <div className="bg-white rounded-2xl shadow p-6 sticky top-10 h-fit">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold">AI 상품 설명 생성</h2>
+              <button
+                type="button"
+                onClick={handleGenerateDescription}
+                disabled={loadingDescription}
+                className="px-4 py-2 text-sm bg-black text-white rounded-md hover:bg-gray-800 cursor-pointer"
+              >
+                {loadingDescription ? "생성중..." : "AI 자동 작성"}
+              </button>
+            </div>
+
+            <textarea
+              className="w-full border rounded-md px-3 py-2 text-sm min-h-[120px]"
+              value={product.description || ""}
+              onChange={(e) => handleChange("description", e.target.value)}
+            />
+    
+            {/* 블록 미리보기 */}
+            <div className="mt-4 space-y-4">
+              {product.blocks?.map((block, idx) => (
+                <div key={idx}>
+                  {block.type === "text" && (
+                    <p className="text-sm text-gray-700 whitespace-pre-line">{block.content}</p>
+                  )}
+                  {block.type === "image" && (
+                    <img src={block.url} className="w-full rounded-lg" />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+          
         </div>
       </div>
     </div>

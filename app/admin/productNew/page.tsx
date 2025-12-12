@@ -214,76 +214,76 @@ export default function ProductNewPage() {
     }
   };
 
-  // ==============================
-  // 렌더링
-  // ==============================
   return (
     <div className="py-10 px-4 min-h-screen">
-      <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-lg p-6 md:p-10">
+      <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl md:text-4xl font-extrabold mb-8 text-gray-800 pb-2 border-b border-gray-200">
           상품 등록
         </h1>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-        {/* 대표 이미지 입력 */}
-        <div className="mb-4">
-          <Input
-            label="대표 이미지 URL"
-            value={product.mainImg}
-            onChange={(e) => setProduct({ ...product, mainImg: e.target.value })}
-            placeholder="대표 이미지 URL을 입력하세요"
-          />
-          {product.mainImg && (
-            <div className="mt-2">
-              <img
-                src={product.mainImg}  // 전체 URL을 그대로 사용하여 미리보기
-                alt="대표 이미지 미리보기"
-                className="w-120px h-240px"
-              />
-            </div>
-          )}
-        </div>
-        {/* 상세 이미지 URL 추가 */}
-        <div className="mb-4">
-          <Input
-            label="상세 이미지 URL 추가"
-            value={subImageUrl}
-            onChange={(e) => setSubImageUrl(e.target.value)}
-            placeholder="상세 이미지 URL을 입력하세요"
-          />
-          <Button
-            className="mt-2"
-            onClick={handleAddSubImage}
-            disabled={!subImageUrl}  // 입력된 URL이 없으면 버튼 비활성화
-          >
-            추가
-          </Button>
-        </div>
-
-        {/* 추가된 상세 이미지 목록 */}
-        <div className="mb-4">
-          {(product.subImages && product.subImages.length > 0) && (
-            <div>
-              <p className="font-semibold">상세 이미지 목록</p>
-              <div className="space-y-2">
-                {product.subImages.map((imgUrl, idx) => (
-                  <div key={idx} className="flex items-center gap-2">
-                    <img
-                      src={imgUrl.imageUrl} // 미리보기
-                      alt={`sub-image-${idx}`}
-                      className="w-20 h-20 object-cover"
-                    />
-                    <Button
-                      className="text-red-500"
-                      onClick={() => removeSubImage(idx)}
-                    >
-                      <Trash2 size={16} />
-                    </Button>
-                  </div>
-                ))}
+        {/* -------------------- LEFT: 상품 기본 정보 -------------------- */}
+        <div className="lg:col-span-2 bg-white rounded-2xl shadow p-6">
+          {/* 대표 이미지 입력 */}
+          <div className="mb-4">
+            <Input
+              label="대표 이미지 URL"
+              value={product.mainImg}
+              onChange={(e) => setProduct({ ...product, mainImg: e.target.value })}
+              placeholder="대표 이미지 URL을 입력하세요"
+            />
+            {product.mainImg && (
+              <div className="mt-2">
+                <img
+                  src={product.mainImg}  // 전체 URL을 그대로 사용하여 미리보기
+                  alt="대표 이미지 미리보기"
+                  className="w-120px h-240px"
+                />
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+          {/* 상세 이미지 URL 추가 */}
+          <div className="mb-4">
+            <Input
+              label="상세 이미지 URL 추가"
+              value={subImageUrl}
+              onChange={(e) => setSubImageUrl(e.target.value)}
+              placeholder="상세 이미지 URL을 입력하세요"
+            />
+            <Button
+              className="mt-2"
+              onClick={handleAddSubImage}
+              disabled={!subImageUrl}  // 입력된 URL이 없으면 버튼 비활성화
+            >
+              추가
+            </Button>
+          </div>
+
+          {/* 추가된 상세 이미지 목록 */}
+          <div className="mb-4">
+            {(product.subImages && product.subImages.length > 0) && (
+              <div>
+                <p className="font-semibold">상세 이미지 목록</p>
+                <div className="space-y-2">
+                  {product.subImages.map((imgUrl, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <img
+                        src={imgUrl.imageUrl} // 미리보기
+                        alt={`sub-image-${idx}`}
+                        className="w-20 h-20 object-cover"
+                      />
+                      <Button
+                        className="text-red-500"
+                        onClick={() => removeSubImage(idx)}
+                      >
+                        <Trash2 size={16} />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* 우측: 상품 정보 */}
           <div className="flex flex-col gap-6 md:w-1/2">
@@ -297,7 +297,7 @@ export default function ProductNewPage() {
 
             {/* 카테고리 선택 */}
             {categoryTree ? (
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 mb-6">
                 <p className="font-semibold">카테고리 선택</p>
 
                 {/* 대분류 */}
@@ -378,149 +378,112 @@ export default function ProductNewPage() {
             ) : (
               <p className="text-gray-500">카테고리 로드 중...</p>
             )}
+          </div>
 
-            {/* 상품 설명 */}
+          {/* 가격 / 재고 */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <Input
+              label="소비자가"
+              type="number"
+              value={product.consumerPrice ?? 0}
+              onChange={(e) =>
+                handleChange("consumerPrice", Number(e.target.value))
+              }
+            />
+            <Input
+              label="기본 판매가"
+              type="number"
+              value={product.sellPrice}
+              onChange={(e) =>
+                handleChange("sellPrice", Number(e.target.value))
+              }
+            />
+            {!product.isOption && (
+              <Input
+                label="재고(단품)"
+                type="number"
+                value={product.stock}
+                onChange={(e) =>
+                  handleChange("stock", Number(e.target.value))
+                }
+              />
+            )}
+          </div>
+
+          {/* 상품 상태 / 노출 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
-                상품 설명
+                상품 상태
               </label>
-              {/* ai 상품 설명 생성 버튼 */}
+              <select
+                value={product.productStatus}
+                onChange={(e) =>
+                  handleChange("productStatus", Number(e.target.value))
+                }
+                className="w-full border rounded-md px-3 py-2 text-sm"
+              >
+                <option value={10}>정상</option>
+                <option value={20}>품절</option>
+                <option value={21}>재고확보중</option>
+                <option value={40}>판매중지</option>
+                <option value={90}>판매종료</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">
+                상품 노출 여부
+              </label>
+              <select
+                value={product.isShow ? "yes" : "no"}
+                onChange={(e) =>
+                  handleChange("isShow", e.target.value === "yes")
+                }
+                className="w-full border rounded-md px-3 py-2 text-sm"
+              >
+                <option value="yes">노출</option>
+                <option value="no">숨김</option>
+              </select>
+            </div>
+          </div>
+
+          {/* 옵션 상품 여부 */}
+          <div className="flex items-center mt-4">
+            <input
+              type="checkbox"
+              checked={product.isOption}
+              onChange={(e) => handleChange("isOption", e.target.checked)}
+            />
+            <span className="ml-2 text-sm">옵션 상품 여부</span>
+          </div>
+
+          {/* 총 재고 표시 (옵션 상품일 경우 합산된 재고 값 표시) */}
+          <div className="mb-4">
+            {product.isOption ? (
+              <div>
+                <h3 className="font-semibold">총 재고: {totalStock}</h3>
+              </div>
+            ) : (
+              <div>
+                <h3 className="font-semibold">총 재고: {product.stock}</h3>
+              </div>
+            )}
+          </div>
+
+          {/* 옵션 목록 */}
+          {product.isOption && (
+            <div className="flex flex-col gap-3 mt-4">
+              <div className="flex justify-between items-center">
+                <p className="font-semibold text-gray-700">옵션 목록</p>
                 <button
                   type="button"
-                  onClick={handleGenerateDescription}
-                  disabled={loadingDescription}
-                  className="px-3 py-1 text-xs bg-black text-white rounded hover:bg-gray-800 cursor-pointer"
+                  onClick={addOption}
+                  className="w-6 h-6 flex mx-2 items-center justify-center bg-black text-white rounded-full cursor-pointer"
                 >
-                  {loadingDescription ? "생성중..." : "AI 자동 작성"}
+                  <Plus size={14} />
                 </button>
-              <textarea
-                className="w-full border rounded-md px-3 py-2 text-sm min-h-[120px]"
-                value={product.description || ""}
-                onChange={(e) => handleChange("description", e.target.value)}
-              />
-
-              {/* 블록 미리보기 렌더링 */}
-              <div className="mt-4 space-y-4">
-                {product.blocks?.map((block, idx) => (
-                  <div key={idx}>
-                    {block.type === "text" && (
-                      <p className="text-sm text-gray-700 whitespace-pre-line">
-                        {block.content}
-                      </p>
-                    )}
-                    {block.type === "image" && (
-                      <img src={block.url} className="w-full rounded-lg" />
-                    )}
-                  </div>
-                ))}
               </div>
-            </div>
-
-            {/* 가격 / 재고 */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Input
-                label="소비자가"
-                type="number"
-                value={product.consumerPrice ?? 0}
-                onChange={(e) =>
-                  handleChange("consumerPrice", Number(e.target.value))
-                }
-              />
-              <Input
-                label="기본 판매가"
-                type="number"
-                value={product.sellPrice}
-                onChange={(e) =>
-                  handleChange("sellPrice", Number(e.target.value))
-                }
-              />
-              {!product.isOption && (
-                <Input
-                  label="재고(단품)"
-                  type="number"
-                  value={product.stock}
-                  onChange={(e) =>
-                    handleChange("stock", Number(e.target.value))
-                  }
-                />
-              )}
-            </div>
-
-            {/* 상품 상태 / 노출 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">
-                  상품 상태
-                </label>
-                <select
-                  value={product.productStatus}
-                  onChange={(e) =>
-                    handleChange("productStatus", Number(e.target.value))
-                  }
-                  className="w-full border rounded-md px-3 py-2 text-sm"
-                >
-                  <option value={10}>정상</option>
-                  <option value={20}>품절</option>
-                  <option value={21}>재고확보중</option>
-                  <option value={40}>판매중지</option>
-                  <option value={90}>판매종료</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">
-                  상품 노출 여부
-                </label>
-                <select
-                  value={product.isShow ? "yes" : "no"}
-                  onChange={(e) =>
-                    handleChange("isShow", e.target.value === "yes")
-                  }
-                  className="w-full border rounded-md px-3 py-2 text-sm"
-                >
-                  <option value="yes">노출</option>
-                  <option value="no">숨김</option>
-                </select>
-              </div>
-            </div>
-
-            {/* 옵션 상품 여부 */}
-            <div className="flex items-center mt-4">
-              <input
-                type="checkbox"
-                checked={product.isOption}
-                onChange={(e) => handleChange("isOption", e.target.checked)}
-              />
-              <span className="ml-2 text-sm">옵션 상품 여부</span>
-            </div>
-
-            {/* 총 재고 표시 (옵션 상품일 경우 합산된 재고 값 표시) */}
-            <div className="mb-4">
-              {product.isOption ? (
-                <div>
-                  <h3 className="font-semibold">총 재고: {totalStock}</h3>
-                </div>
-              ) : (
-                <div>
-                  <h3 className="font-semibold">총 재고: {product.stock}</h3>
-                </div>
-              )}
-            </div>
-
-            {/* 옵션 목록 */}
-            {product.isOption && (
-              <div className="flex flex-col gap-3 mt-4">
-                <div className="flex justify-between items-center">
-                  <p className="font-semibold text-gray-700">옵션 목록</p>
-                  <button
-                    type="button"
-                    onClick={addOption}
-                    className="w-6 h-6 flex mx-2 items-center justify-center bg-black text-white rounded-full cursor-pointer"
-                  >
-                    <Plus size={14} />
-                  </button>
-                </div>
-
                 {product.options.map((opt, idx) => {
                   const base = product.sellPrice || 0;
                   const extra = opt.extraPrice || 0;
@@ -647,7 +610,41 @@ export default function ProductNewPage() {
               상품 등록
             </Button>
           </div>
+        
+        {/* -------------------- RIGHT: AI 설명 생성 -------------------- */}
+        <div className="bg-white rounded-2xl shadow p-6 sticky top-10 h-fit">
+          {/* 제목 + 버튼 */}
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold">AI 상품 설명 생성</h2>
+            {/* ai 상품 설명 생성 버튼 */}
+            <button
+              type="button"
+              onClick={handleGenerateDescription}
+              disabled={loadingDescription}
+              className="px-4 py-2 text-sm bg-black text-white rounded-md hover:bg-gray-800 cursor-pointer"
+            >
+              {loadingDescription ? "생성중..." : "AI 자동 작성"}
+            </button>
+          </div>
+
+            {/* 블록 미리보기 렌더링 */}
+            <div className="space-y-4">
+              {product.blocks?.map((block, idx) => (
+                <div key={idx}>
+                  {block.type === "text" && (
+                    <p className="text-sm text-gray-700 whitespace-pre-line">
+                      {block.content}
+                    </p>
+                  )}
+                  {block.type === "image" && (
+                    <img src={block.url} className="w-full rounded-lg" />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
+    </div>
   );
 }
